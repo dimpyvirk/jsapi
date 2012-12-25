@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title></title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/dojo/dijit/themes/tundra/tundra.css">
+    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/esri/css/esri.css" />
+
+    <style>
+      html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
+      #map{ margin: 0; padding: 0; }
+
+      /* center the image in the popup */
+      .esriViewPopup .gallery { margin: 0 auto !important; }
+    </style>
+    <script>
+      var dojoConfig = { 
+        parseOnLoad: true,
+        packages: [{
+          "name": "extras",
+          "location": location.pathname.replace(/\/[^/]+$/, '') + "/extras"
+        }]
+      };
+    </script>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.2"></script>
+    
+    <script>
+      dojo.require("dijit.layout.BorderContainer");
+      dojo.require("dijit.layout.ContentPane");
+      dojo.require("esri.map");
+      dojo.require("esri.dijit.Popup");
+      dojo.require("extras.ClusterLayer");
+      
+      var map, clusterLayer;
+      function init() {
+        var initExtent = new esri.geometry.Extent({"xmin":-13124533,"ymin":3962461,"xmax":-13099843,"ymax":3972818,"spatialReference":{"wkid":102100}});
+        var popupOptions = {
+          "markerSymbol": new esri.symbol.SimpleMarkerSymbol("circle", 20, null, new dojo.Color([0, 0, 0, 0.25])),
+          "marginLeft": "20", 
+          "marginTop": "20"
+        };
+        var popup = new esri.dijit.Popup(popupOptions, dojo.create("div"));
+        map = new esri.Map("map", {
+          extent: initExtent,
+          infoWindow: popup
+        });
+        // var basemap = new esri.layers.ArcGISTiledMapServiceLayer("http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer");
+        var basemap = new esri.layers.ArcGISTiledMapServiceLayer("http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/");
+        map.addLayer(basemap);
+        
+        clusterLayer = new extras.ClusterLayer({ 
+          "data": [],
+          "distance": 100,
+          "id": "clusters", 
+          "labelColor": "#fff",
+          "labelOffset": 10,
+          "resolutionFactor": 10,
+          "singleColor": "#888"
+        });
+        var defaultSym = new esri.symbol.SimpleMarkerSymbol().setSize(4);
+        var renderer = new esri.renderer.ClassBreaksRenderer(
+          defaultSym, 
+          "clusterCount"
+        );
+        var blue = new esri.symbol.PictureMarkerSymbol("http://static.arcgis.com/images/Symbols/Shapes/BluePin1LargeB.png", 32, 32).setOffset(0, 15);
+        var green = new esri.symbol.PictureMarkerSymbol("http://static.arcgis.com/images/Symbols/Shapes/GreenPin1LargeB.png", 64, 64).setOffset(0, 15);
+        var red = new esri.symbol.PictureMarkerSymbol("http://static.arcgis.com/images/Symbols/Shapes/RedPin1LargeB.png", 72, 72).setOffset(0, 15);
+        renderer.addBreak(0, 2, blue);
+        renderer.addBreak(2, 200, green);
+        renderer.addBreak(200, 1001, red);
+
+        clusterLayer.setRenderer(renderer);
+        map.addLayer(clusterLayer);
+        
+        
+        dojo.connect(map, "onLoad", function() { 
+          // handle resize of the browser
+          dojo.connect(dijit.byId("map"), "resize", map, map.resize);
+          // hide the popup's ZoomTo link as it doesn't make sense for cluster features
+          dojo.style(dojo.query("a.action.zoomTo")[0], "display", "none");
+
+          
+        });
+      }
+      
+      function getPhotos() {
+      	// get the latest 1000 photos from instagram/laguna beach
+      	console.log("load photos");
+      	var photos = esri.request({
+      	  "url": "data/1000-photos.json", 
+      	  "handleAs": "json"
+      	});
+      	
+      	var xxx = 0;
+      	photos.then(addClusters, error);
+      }
+
+      function addClusters(resp) {
+        var photoInfo = {};
+        var wgs = new esri.SpatialReference({ "wkid": 4326 });
+        photoInfo.data = dojo.map(resp, function(p) {
+          var latlng = new esri.geometry.Point(parseFloat(p.lng), parseFloat(p.lat), wgs);
+          var webMercator = esri.geometry.geographicToWebMercator(latlng);
+          var attributes = { 
+            "Caption": p.caption, 
+            "Name": p.full_name, 
+            "Image": p.image, 
+            "Link": p.link
+          }; 
+          return { "x": webMercator.x, "y": webMercator.y, "attributes": attributes };
+        });
+
+        // popupTemplate to work with attributes specific to this dataset
+        var popupTemplate = esri.dijit.PopupTemplate({
+          "title": "",
+          "fieldInfos": [
+            { "fieldName": "Caption", visible: true },
+            { "fieldName": "Name", "label": "By",  visible: true },
+            { "fieldName": "Link", "label": "On Instagram", visible: true }
+          ],
+          "mediaInfos": [{
+            "title": "",
+            "caption": "",
+            "type": "image",
+            "value": {
+              "sourceURL": "{Image}",
+              "linkURL": "{Link}"
+            }
+          }]
+        });
+        
+        var layer = map.getLayer("clusters")
+        layer._clusterData = photoInfo.data;
+        layer._singleTemplate = popupTemplate;
+        layer._clusterGraphics();
+      }
+
+      function cleanUp() {
+        map.infoWindow.hide();
+        clusterLayer.clearSingles();
+      }
+
+      function error(err) {
+        console.log("something failed: ", err);
+      }
+
+      // show cluster extents 
+      function showExtents() {
+        var extents = new esri.layers.GraphicsLayer();
+        var sym = new esri.symbol.SimpleFillSymbol().setColor(new dojo.Color([205,193,197,0.5]));
+
+        dojo.forEach(clusterLayer._clusters, function(c) {
+          var e = c.attributes.extent;
+          extents.add(new esri.Graphic(new esri.geometry.Extent(e[0], e[1], e[2], e[3]), sym));
+        }, this);
+        map.addLayer(extents, 0);
+        console.log("added extents");
+      }
+      
+      dojo.ready(init);
+    </script>
+  </head>
+  
+  <body class="tundra">
+    <div data-dojo-type="dijit.layout.BorderContainer" 
+         data-dojo-props="design:'headline',gutters:false" 
+         style="width: 100%; height: 100%; margin: 0;">
+      <div id="map" 
+           data-dojo-type="dijit.layout.ContentPane" 
+           data-dojo-props="region:'center'"> 
+           <button type="button" onclick="getPhotos();">Load photos</button>
+      </div>
+    </div>
+  </body>
+</html>
+

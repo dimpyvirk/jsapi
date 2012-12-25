@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=7,IE=9" />
+<meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+<title></title>
+<link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/dojo/dijit/themes/tundra/tundra.css">
+<link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/esri/css/esri.css" />
+
+<style>
+  html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
+  #map { margin: 0; padding: 0; }
+</style>
+<script>var dojoConfig = { parseOnLoad: true };</script>
+<script src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.2"></script>
+<script>
+  dojo.require("dijit.layout.BorderContainer");
+  dojo.require("dijit.layout.ContentPane");
+  dojo.require("esri.map");
+  dojo.require("esri.layers.KMLLayer");
+  dojo.require("esri.layers.FeatureLayer");
+    
+  var map;
+  function init() {
+    var initExtent = new esri.geometry.Extent({"xmin": 15000000,"ymin": -4500000,"xmax": 17500000,"ymax": -3000000,"spatialReference":{"wkid":102100}});
+    map = new esri.Map("map",{ extent: initExtent });
+    var basemap = new esri.layers.ArcGISTiledMapServiceLayer("http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer");
+    map.addLayer(basemap);
+
+	var elevationLayerDef = {
+		"id": "elevDocs",
+		"layerType" :"kml",
+		"kmlType": "point",
+		"cluster": "true",
+		"url": "http://nsw-coastal-explorer.domorewithmaps.com/map/kml/nsw-elevations-docs.1.3.kmz"
+	};
+	
+	var beachLayerDef = {
+		"id": "beachDocs",
+		"layerType" :"kml",
+		"kmlType": "point",
+		"cluster": "true",
+		"url": "http://nsw-coastal-explorer.domorewithmaps.com/map/kml/nsw-beaches-docs.1.3.kmz"
+	};	
+
+    var elevLayer = buildKmlLayer(elevationLayerDef);
+    
+    //Without the pause, or with a very short pause, an error message will be shown
+    setTimeout(function(){
+    	var beachLayer = buildKmlLayer(beachLayerDef);
+    },500);
+    
+    function buildKmlLayer(newLayer) {
+    	console.log("processing layer ",newLayer.id);
+    	var url = "http://utility.arcgis.com/sharing/kml?url=" + newLayer.url + "&refresh=true";
+    	
+    	var kmlRequest = esri.request({
+    		 id: newLayer.id,
+    	     url: url,
+    	     content: {
+    	       f:  "json"
+    	     },
+    	     handleAs: "json",
+    	     callbackParamName: "callback",
+    	     load: function() {
+    	     	console.log("inside success function for ",arguments[1].args.id);
+    	     
+    	     	if(arguments.length == 2) {
+	    	     	var layers = arguments[0].featureCollection.layers;
+	    	     	var layerId = arguments[1].args.id;
+	    	     	
+	    	     	//Work out which layers should be processed
+	    	     	for (var x = 0; x < layers.length; x++) {
+	    	     		var layer = layers[x];
+	    	     		var geomType = layer.featureSet.geometryType;
+	    	     		var features = layer.featureSet.features;
+	    	     		if(features.length > 0) {
+	    	     			console.log(layerId,geomType,features.length);
+	    	     		}
+	    	     	}
+    	     	} else {
+    	     		alert("Error in build KML function");
+    	     	}
+    	     
+    	     },
+    	     error: kmlFailed
+    	});
+    }
+    
+    function kmlFailed(error) {
+      console.log("Error with layer ",arguments[1].args.id, error.message);
+    }
+        
+    dojo.connect(map, 'onLoad', function() { 
+        //resize the map when the browser resizes
+        dojo.connect(dijit.byId('map'), 'resize', map,map.resize);
+    });
+  }
+  dojo.ready(init);
+</script>
+</head>
+
+<body class="tundra">
+<div data-dojo-type="dijit.layout.BorderContainer" 
+     data-dojo-props="design:'headline',gutters:false" 
+     style="width: 100%; height: 100%; margin: 0;">
+  <div id="map" 
+       data-dojo-type="dijit.layout.ContentPane" 
+       data-dojo-props="region:'center'"> 
+  </div>
+</div>
+</body>
+</html>

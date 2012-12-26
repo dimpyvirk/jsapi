@@ -5,6 +5,9 @@
 <script>var dojoConfig = { parseOnLoad: true };</script>
 <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.2"></script>
 <script>
+
+	var kmlStatus = null;
+	var kmlAttempts = 0;
     
   function init() {
 
@@ -19,43 +22,71 @@
 	};
 	var elevLayer = new KmlLayer(elevationLayerDef);
 	var beachLayer = new KmlLayer(beachLayerDef);
-	
-
-	//Call the utility.arcgis.com/kml service the first time
-    elevLayer.loadKml();
-    
-    
-    //Call the utility.arcgis.com/kml service the second time
-    //With a delay less than about 500ms, an error message will often be shown (even using refresh=true)
-   
-    setTimeout(function(){
-    	beachLayer.loadKml();
-    },10);
     
     function KmlLayer(newLayer) {
     	this.id = newLayer.id;
-    	console.log("defining layer ",this.id);
+    	//console.log("defining layer ",this.id);
     	var url = "http://utility.arcgis.com/sharing/kml?url=" + newLayer.url + "&refresh=true";
     	
-    	this.loadKml = function() {
-    		console.log("loading KML for layer ", this.id);
-	    	var kmlRequest = esri.request({
-	    		 id: newLayer.id,
-	    	     url: url,
-	    	     content: {
-	    	       f:  "json"
-	    	     },
-	    	     handleAs: "json",
-	    	     callbackParamName: "callback",
-	    	     load: function() {
-	    	     	//If the esri.request worked, we'll have access to the KML layer's features in this loop
-	    	     	console.log("inside success function for ",this.id);    	     
-	    	     },
-	    	     error: function (error) {
-	    	     	console.log("Error with layer ",this.id, error.message);
-	    	     }
-	    	});
+    	this.loadKml = function loadKml() {
+    		//Check that there is no other KML operation currently in progress
+    		if(kmlStatus == null) {
+    			kmlStatus = "processing";
+	    		//console.log("loading KML for layer ", this.id);
+		    	var kmlRequest = esri.request({
+		    		 layerConfig: newLayer,
+		    	     url: url,
+		    	     content: {
+		    	       f:  "json"
+		    	     },
+		    	     handleAs: "json",
+		    	     callbackParamName: "callback",
+		    	     load: function() {
+		    	     	//If the esri.request worked, we'll have access to the KML layer's features in this loop
+		    	     	//console.log("inside success function for ",this.id);  
+		    	     	kmlStatus = null; 
+		    	     	
+		    	     	if(arguments.length == 2) {
+		    	     		var layers = arguments[0].featureCollection.layers;
+		    	     		var layerId = this.layerConfig.id;
+		    	     		
+		    	     		//Work out which layers should be processed
+		    	     		for (var x = 0; x < layers.length; x++) {
+		    	     			var layer = layers[x];
+		    	     			var geomType = layer.featureSet.geometryType;
+		    	     			var features = layer.featureSet.features;
+		    	     			if(features.length > 0) {
+		    	     				console.log(layerId,geomType,features.length);
+		    	     			}
+		    	     		}
+		    	     	} else {
+		    	     		alert("Error in build KML function");
+		    	     	}
+		    	     	 	     
+		    	     },
+		    	     error: function (error) {
+		    	     	console.log("Error with layer ",this.id, error.message);
+		    	     	kmlStatus = null;
+		    	     }
+		    	});
+		    } else {
+		    	//If there is another KML operation in progress, pause before trying again, until we've tried 10 times
+		    	kmlAttempts += 1;
+		    	if(kmlAttempts < 10) {
+			    	//console.log("kml processing is already in operation. Pausing");
+			    	setTimeout(function(){
+			    		loadKml();
+			    	},500);
+			    } else {
+			    	console.log("tried 10 times to load the KML without success. Aborting");
+			    	kmlStatus = "aborted";
+			    	return null;
+			    }
+		    }
 	    }
+	    
+	    //Call the LoadKML function
+	    this.loadKml();
     }       
   }
   dojo.ready(init);

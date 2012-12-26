@@ -26,7 +26,7 @@
     //With a delay less than about 500ms, an error message will often be shown (even using refresh=true)
     setTimeout(function(){
     	var beachLayer = buildKmlLayer(beachLayerDef);
-    },5);
+    },1000);
     
     function buildKmlLayer(newLayer) {
     	console.log("processing layer ",newLayer.id);
@@ -42,7 +42,7 @@
     	     callbackParamName: "callback",
     	     load: function() {
     	     	//If the esri.request worked, we'll have access to the KML layer's features in this loop
-    	     	console.log("inside success function for ",arguments[1].args.id);    	     
+    	     	console.log("inside success function for",this.id);    	     
     	     },
     	     error: kmlFailed
     	});
@@ -50,7 +50,7 @@
     
     function kmlFailed(error) {
     	//If the esri.request failed, we'll end up in this loop
-		console.log("Error with layer ",arguments[1].args.id, error.message);
+		console.log("Error with layer",this.id,error.message);
     }
        
   }

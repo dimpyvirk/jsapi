@@ -4,90 +4,43 @@
 <title>KML error repro case</title>
 <script>var dojoConfig = { parseOnLoad: true };</script>
 <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.2"></script>
+<script src="feKmlLayer.js"></script>
 <script>
-
-	var kmlStatus = null;
-	var kmlAttempts = 0;
     
   function init() {
 
 	//Define two KML layers which we'll retrieve manually using utility.arcgis.com/kml
 	var elevationLayerDef = {
 		"id": "elevDocs",
+		"layerType": "kml",
 		"url": "http://nsw-coastal-explorer.domorewithmaps.com/map/kml/nsw-elevations-docs.1.3.kmz"
 	};
 	var beachLayerDef = {
 		"id": "beachDocs",
-		"url": "http://nsw-coastal-explorer.domorewithmaps.com/map/kml/nsw-beaches-docs.1.3.kmz"
+		"layerType": "kml",
+		"url": "http://nsw-coastal-explorer.domorewithmaps.com/map/kml/nsw-beaches-docs.1.3.kmz",
+		"featureType": "points"
 	};
-	var elevLayer = new KmlLayer(elevationLayerDef);
+	var estuaryLayerDef = {
+		"id": "estuaryDocs",
+		"layerType": "kml",
+		"url": "http://nsw-coastal-explorer.domorewithmaps.com/map/kml/nsw-estuaries-docs.1.3.kmz"
+	};
+	
+	var googleLayerDef = {
+		"id": "google sample",
+		"layerType": "kml",
+		"url": "http://kml-samples.googlecode.com/svn/trunk/kml/time/time-stamp-point.kml"
+	
+	}
+	
+	//var googleLayer = new KmlLayer(googleLayerDef);
+	//var elevLayer = new KmlLayer(elevationLayerDef);
 	var beachLayer = new KmlLayer(beachLayerDef);
+    var estuaryLayer = new KmlLayer(estuaryLayerDef);
     
-    function KmlLayer(newLayer) {
-    	this.id = newLayer.id;
-    	//console.log("defining layer ",this.id);
-    	var url = "http://utility.arcgis.com/sharing/kml?url=" + newLayer.url + "&refresh=true";
-    	
-    	this.loadKml = function loadKml() {
-    		//Check that there is no other KML operation currently in progress
-    		if(kmlStatus == null) {
-    			kmlStatus = "processing";
-	    		//console.log("loading KML for layer ", this.id);
-		    	var kmlRequest = esri.request({
-		    		 layerConfig: newLayer,
-		    	     url: url,
-		    	     content: {
-		    	       f:  "json"
-		    	     },
-		    	     handleAs: "json",
-		    	     callbackParamName: "callback",
-		    	     load: function() {
-		    	     	//If the esri.request worked, we'll have access to the KML layer's features in this loop
-		    	     	//console.log("inside success function for ",this.id);  
-		    	     	kmlStatus = null; 
-		    	     	
-		    	     	if(arguments.length == 2) {
-		    	     		var layers = arguments[0].featureCollection.layers;
-		    	     		var layerId = this.layerConfig.id;
-		    	     		
-		    	     		//Work out which layers should be processed
-		    	     		for (var x = 0; x < layers.length; x++) {
-		    	     			var layer = layers[x];
-		    	     			var geomType = layer.featureSet.geometryType;
-		    	     			var features = layer.featureSet.features;
-		    	     			if(features.length > 0) {
-		    	     				console.log(layerId,geomType,features.length);
-		    	     			}
-		    	     		}
-		    	     	} else {
-		    	     		alert("Error in build KML function");
-		    	     	}
-		    	     	 	     
-		    	     },
-		    	     error: function (error) {
-		    	     	console.log("Error with layer ",this.id, error.message);
-		    	     	kmlStatus = null;
-		    	     }
-		    	});
-		    } else {
-		    	//If there is another KML operation in progress, pause before trying again, until we've tried 10 times
-		    	kmlAttempts += 1;
-		    	if(kmlAttempts < 10) {
-			    	//console.log("kml processing is already in operation. Pausing");
-			    	setTimeout(function(){
-			    		loadKml();
-			    	},500);
-			    } else {
-			    	console.log("tried 10 times to load the KML without success. Aborting");
-			    	kmlStatus = "aborted";
-			    	return null;
-			    }
-		    }
-	    }
-	    
-	    //Call the LoadKML function
-	    this.loadKml();
-    }       
+    var xxx = 0;
+            
   }
   dojo.ready(init);
 </script>

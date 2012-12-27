@@ -40,17 +40,15 @@
     	     },
     	     handleAs: "json",
     	     callbackParamName: "callback",
-    	     load: function() {
+    	     load: function(data) {
     	     	//If the esri.request worked, we'll have access to the KML layer's features in this loop
     	     	console.log("inside success function for",this.id);    	     
     	     },
-    	     error: kmlFailed
+    	     error: function(error) {
+    	     	//If the esri.request failed, we'll end up in this loop
+	     		console.log("Error with layer",this.id,error.message);
+	     	}
     	});
-    }
-    
-    function kmlFailed(error) {
-    	//If the esri.request failed, we'll end up in this loop
-		console.log("Error with layer",this.id,error.message);
     }
        
   }

@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Print Task</title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/dojo/dijit/themes/nihilo/nihilo.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
+    <script>var dojoConfig = { parseOnLoad: true };</script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.1.min.js"></script>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
+    <script type="text/javascript">djConfig={parseOnLoad:true};var userConfig={};</script>
+	<script src="print.js"></script>
+    <script src="userConfig.js"></script>
+    <style>
+		html, body { 
+			height: 100%; width: 100%;
+			margin: 0; padding: 0;
+		} 
+    </style>
+    <script>
+		dojo.require("dijit.layout.BorderContainer");
+		dojo.require("dijit.layout.ContentPane");
+		dojo.require("dijit.form.Button");
+		dojo.require("esri.map");
+		dojo.require("esri.tasks.PrintTask");
+		
+		var feMap = {};
+		
+		function init() {
+		
+			var map = new esri.Map("map", {center: [-90.733, 30.541],zoom: 8});
+			
+			var tiledLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer");
+			map.addLayer(tiledLayer);
+			
+			setupPrinter();
+			jQuery("#btnPrint").click(function() {
+				createPrint();			
+			});			
+    	}
+		    	
+		dojo.ready(init);
+    </script>
+    
+  </head>
+  <body class="nihilo">
+  	<div id="header" 
+  	           data-dojo-type="dijit.layout.ContentPane"
+  	           data-dojo-props="region:'top'">
+  	        <button id="btnPrint" type="button">Print</button>
+  	      </div>
+    <div id="mainWindow" 
+         data-dojo-type="dijit.layout.BorderContainer" 
+         data-dojo-props="design:'headline',gutters:false"
+         style="width: 100%; height: 100%; margin: 0;">
+      <div id="map" class="shadow" 
+           data-dojo-type="dijit.layout.ContentPane"
+           data-dojo-props="region:'center'">
+      </div>
+    </div>
+  </body>
+</html>

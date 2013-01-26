@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>esriRequest sample</title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/dojo/dijit/themes/nihilo/nihilo.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
+    <script>var dojoConfig = { parseOnLoad: true };</script>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
+    <script>
+    	dojo.require("esri.utils");
+    	
+    	function init() {
+    		console.log('start');
+    		
+    		esri.request({
+    		     url: "http://services.azuron.com/arcgis/rest/services/OEH/CoastalExplorer/MapServer/1",
+    		     content: {
+    		       f:  "json"
+    		     },
+    		     handleAs: "json",
+    		     callbackParamName: "callback",
+    		     load: function(response) {
+    		     	console.log("got a response", response);
+    		     },
+    		     error: function (error) {
+    		     	console.log("Error with esri.request:", error.message);
+    		     }
+    		});
+    		
+    		esri.request({
+    		     url: "http://services.azuron.com/arcgis/rest/services/OEH/CoastalExplorer/MapServer/1",
+    		     content: {
+    		       f:  "json"
+    		     },
+    		     handleAs: "json",
+    		     callbackParamName: "callback",
+    		     load: function(response) {
+    		     	console.log("got a response", response);
+    		     },
+    		     error: function (error) {
+    		     	console.log("Error with esri.request:", error.message);
+    		     }
+    		});
+    		
+    	}
+    	
+    	
+    	dojo.ready(init);
+    </script>
+    
+  </head>
+  <body>   
+  </body>
+</html>

@@ -1,0 +1,40 @@
+dojo.require('esri.map');
+
+//Namespace
+if (!this.fe || typeof this.fe !== 'object') {
+	this.fe = {};
+} 
+
+/* Map Model */
+fe.MapModel = Backbone.Model.extend({
+    initialize: function () {
+    	var userConfig = this.attributes.userConfig;
+        this.startExtent = new esri.geometry.Extent({ xmin: userConfig.application.extent.xMin, ymin: userConfig.application.extent.yMin, xmax: userConfig.application.extent.xMax, ymax :userConfig.application.extent.yMax, spatialReference: { 'wkid': userConfig.application.extent.spatialRef} });
+        this.map = new esri.Map(this.attributes.div, { extent: this.startExtent });
+        var tiledMapServiceLayer = new esri.layers.ArcGISTiledMapServiceLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer');
+        this.map.addLayer(tiledMapServiceLayer);
+
+        dojo.connect(this.map, 'onExtentChange', dojo.hitch(this, this.updateExtent));
+        dojo.connect(this.map, 'onMouseMove', dojo.hitch(this, this.updateMouseCoords));
+        dojo.connect(this.map, 'onMouseDrag', dojo.hitch(this, this.updateMouseCoords));
+        dojo.connect(this.map, 'onMouseOut', dojo.hitch(this, this.updateMouseCoords));
+    },
+    updateExtent: function () {
+        var extent = {
+            xmin: this.map.extent.xmin.toFixed(2),
+            xmax: this.map.extent.xmax.toFixed(2),
+            ymin: this.map.extent.ymin.toFixed(2),
+            ymax: this.map.extent.ymax.toFixed(2)
+        };
+
+        this.set(extent);
+    },                
+    updateMouseCoords: function (evt) {
+        if ((evt.type) === 'mouseout') {
+            this.unset('x', { silent: true });
+            this.unset('y');
+        } else if (evt.mapPoint) {
+            this.set({ x: evt.mapPoint.x, y: evt.mapPoint.y });
+        }
+    }
+});

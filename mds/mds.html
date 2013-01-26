@@ -1,0 +1,46 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">  
+<html>  
+  <head>  
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>  
+    <mets http-equiv="X-UA-Compatible" content="IE=7"/>  
+   <!-- The viewport meta tag is used to improve the presentation and behavior of the samples on ios devices -->  
+  <meta name="viewport" content="intial-scale=1, maximum-scale=1, user-scalable=no" />  
+    <title>Create Map</title>  
+  <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/2.8/js/dojo/dijit/themes/claro/claro.css">  
+  <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=2.8"></script>  
+  <script type="text/javascript">  
+   dojo.require("esri.map");
+   dojo.require("esri.layers.agstiled"); 
+   
+   var map; 
+   
+   function init(){  
+   	
+   	var startExtent = new esri.geometry.Extent({
+   		"xmax":17074327,
+   		"xmin":12671554,
+   		"ymax": -1644846,
+   		"ymin":-4580028,
+   		"spatialReference":{"wkid":102100}
+   	});
+   	
+    map = new esri.Map("map", {extent: startExtent});  
+    
+    var bm = new esri.layers.ArcGISTiledMapServiceLayer("http://ga.gov.au/gis/rest/services/topography/Topo_WM/MapServer");
+    map.addLayer(bm);
+      
+    var mdsLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://arcservices.mdsgeoplace.com/MDS/rest/services/MDSFoundationMapGreyscale/MapServer?token=RuOMfaacBw3-EO3u2Zp1OYLPcxH4UUxWqY_4PDDGNTH3XSzoNvbDYY0SAOrcOrL7vQyG6qMqK9tWHxUFOcdkMg..");
+    map.addLayer(mdsLayer);
+    
+    dojo.connect(mdsLayer, "onError", function(error) {
+    	alert("Code: " + error.code + ", " + error.message);    
+    });
+    
+    }  
+   dojo.addOnLoad(init);  
+  </script>  
+ </head>  
+ <body class="claro">  
+   <div id="map" style="width: 900px; height:600px; border 1px solid #000;"></div>  
+  </body>  
+</html>     

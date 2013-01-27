@@ -8,7 +8,7 @@
         <!--The viewport meta tag is used to improve the presentation and behavior of the samples
         on iOS devices-->
         <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
-        <title>Awesomer!</title>
+        <title>Backbone test</title>
         <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/dojo/dijit/themes/claro/claro.css">
         <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css" /> 
         
@@ -26,8 +26,8 @@
         <script src="js/mapModel.js"></script>
         
         <script type="text/javascript">
-        
-            /* MapInfo View */
+        	
+            /* MapInfo View 
             MapInfoView = Backbone.View.extend({
                 initialize: function (args) {
                     this.template = ich[this.options.template];
@@ -40,17 +40,18 @@
                     return this;
                 }
             });
+            */
 
-
+			var feObj = {};
             dojo.addOnLoad(function () {
-                var map1 = new fe.MapModel({
+                feObj.map1 = new fe.MapModel({
                 	div: "map1",
                 	userConfig: testConfig                
                 });
-                new MapInfoView({ model: map1, template: 'extent-template', el: '#info' });
-                new MapInfoView({ model: map1, template: 'mousecoords-template', el: '#coords' });
+                //new MapInfoView({ model: map1, template: 'extent-template', el: '#info' });
+                //new MapInfoView({ model: map1, template: 'mousecoords-template', el: '#coords' });
                 
-                var map2 = new fe.MapModel({
+                feObj.map2 = new fe.MapModel({
                 	div: "map2",
                 	userConfig: testConfig2
                 });

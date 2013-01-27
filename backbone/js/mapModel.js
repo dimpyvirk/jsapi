@@ -10,6 +10,7 @@ fe.MapModel = Backbone.Model.extend({
     initialize: function () {
     	var userConfig = this.attributes.userConfig;
     	
+    	    	
         var startExtent = new esri.geometry.Extent({
         	xmin: userConfig.application.extent.xMin,
         	ymin: userConfig.application.extent.yMin,
@@ -32,13 +33,5 @@ fe.MapModel = Backbone.Model.extend({
             ymax: this.map.extent.ymax.toFixed(0)
         };
         this.set(extent);
-    },                
-    updateMouseCoords: function (evt) {
-        if ((evt.type) === 'mouseout') {
-            this.unset('x', { silent: true });
-            this.unset('y');
-        } else if (evt.mapPoint) {
-            this.set({ x: evt.mapPoint.x, y: evt.mapPoint.y });
-        }
     }
 });

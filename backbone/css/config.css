@@ -1,0 +1,193 @@
+/*Styling for the config page*/
+
+#configPanel {
+	display: none;
+	padding-top: 50px;
+}
+
+#loadFilePanel {
+	padding-top: 50px;
+}
+
+.configOption {
+	display: none;
+	padding-top: 40px;
+}
+
+.feLoadButton {
+	display: none;
+}
+    	
+#navHeadings {
+	display: none;
+}
+
+body {
+	overflow-y: scroll;
+}
+
+.configOption {
+	display: none;
+}
+
+.input-xlarge {
+    width: 570px;
+}
+
+.feNewObjectButton {
+	position: absolute;
+	right: 50px;
+}
+
+.feBoxes {
+	list-style-type: none;
+	padding-bottom: 50px;
+}
+
+#mapDiv {
+	padding-bottom: 15px;
+	display: block;
+	height: 450px;
+	margin-top: 30px;
+	overflow: hidden;
+	padding: 0;
+	position: relative;
+	width: 100%;	
+}
+
+#categoryList {
+	list-style-type: none;
+}
+
+.noSelect {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.badValue, .fatalValue {
+	background-image: url("../../assets/img/error.png");
+    background-repeat: no-repeat;
+    color: red;
+    background-position: right center;
+}
+
+.dropdown-menu {
+	left: 50px;
+    min-width: 100px;
+    padding-left: 15px;
+}
+
+.modal-body {
+	max-height: 80%;
+}
+
+#editLayerPanel, #editMapPanel, #editBasemapPanel {
+	min-width: 670px;
+	max-height: 700px;
+	overflow-y:  auto;
+}
+
+.modal.fade.in {
+    top: 40%;
+}
+
+.featureLayerProperties {
+	display: none;
+}
+
+.dynamicLayerProperties {
+	display: none;
+}
+
+.clusterLayerProperties {
+	display: none;
+}
+
+.tiledLayerProperties {
+	display: none;
+}
+	
+#btnEditLayerLoadFromRest {
+	display: none;
+	margin-bottom: 10px;
+}
+
+.ignore {
+	color: lightgrey !important;
+}
+
+#editLayerErrorMessage {
+	color: red;
+	font-style: italic;
+}
+
+.fePanel {
+	border: 1px solid #A3A3A3;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	padding: 15px;
+	border-radius: 5px 5px 5px 5px;
+    box-shadow: 3px 3px 2px rgba(0, 0, 0, 0.5);
+    position: relative;
+	min-height: 150px;
+}
+
+.feMap {
+	background-color: #F0F8FF;
+}
+
+.feLayer {
+	background-color: #FFE1FF;    	
+}
+
+.feLayerMapList {
+	margin-bottom: 20px;
+}
+
+.feEditButton {
+	bottom: 5px;
+    margin-top: 500px;
+    position: absolute;
+    right: 5px;
+}
+
+/*Prevent scrolling of the page when a modal dialog is open.
+NB this may fail if we upgrade to a newer version of Bootstrap as per 
+http://stackoverflow.com/questions/9538868/prevent-body-from-scrolling-when-a-modal-is-opened#comment19260350_11013994
+*/
+body.modal-open {
+    overflow: hidden;
+}
+
+footer {
+	text-align: center;
+}
+
+.dropdown-menu li {
+	cursor: pointer;
+	color: #A3A3A3;
+}
+
+.dropdown-menu li:hover {
+	color: #000;
+}
+
+#editBaseMapBingProperties, #editBasemapEsriProperties {
+	display: none;
+}
+
+span .feBasemapServices{
+	display: inline-block;
+}
+
+.hidden {
+	display: none;
+}
+
+.disabled {
+	opacity: 0.5;
+}

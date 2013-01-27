@@ -190,15 +190,18 @@
     <script type="text/javascript" src='js/resources/underscore-min.js' ></script>
     <script type="text/javascript" src='js/resources/backbone-min.js' ></script>
     
-    <!--define the Map model-->
+    <!--define the models, views and collections-->
     <script src="js/mapModel.js"></script>
- 
+    
     <script type="text/javascript">
+    
+    	//Define a global object on which to hang models, views and collections
     	var feObj = {};
     	dojo.addOnLoad(function () {
     	    feObj.map1 = new fe.MapModel({
     	    	div: "mapDiv",
-    	    	userConfig: testConfig                
+    	    	userConfig: testConfig,
+    	    	feZoomSlider: "zoomSliderDiv"              
     	    });
     	});
 	

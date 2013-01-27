@@ -956,3 +956,129 @@ a.mapSubmit:hover {
 	user-select:none;
 }
 */
+
+#doc-container {
+	background: none repeat scroll 0 0 white;
+	height: auto;
+	position: absolute;
+	right: 0;
+	top: 78px;
+	width: 488px;
+	z-index: 1;
+	max-height: 400px;
+	overflow: auto;
+	background-color: #EEEEEE;
+	background-image: -moz-linear-gradient(center top , whiteSmoke 0%, #EEEEEE 100%);
+	background-repeat: repeat-x;
+	border-radius: 0 0 0 0;
+	box-shadow: 0 2px 4px #888888;
+}
+#doc-container > li {
+	width: 216px;
+	height: auto;
+	float: left;
+	padding: 10px;
+}
+#doc-container > li:hover {    
+	background: white;
+}
+#doc-container > li > p  img{
+	height: auto!important;
+	width: 216px!important;
+}
+
+.esriPopupWrapper .contentPane img {
+	height: auto;
+	width: 100%;
+}    
+
+#layersButton:not(.buttonSelected) .loading {
+	/*over-ride the "loading" indicator since this is shown on the map itself */
+	background: none;
+}
+		
+#status {
+	display: none;
+	background-color: black; 
+	color: white; 
+	padding: 3px; 
+	border: solid 1px white;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	position: absolute;
+	z-index: 1000; 
+	right: 20px;
+    top: 100px;
+}
+
+.active {
+	/* bold the currently-selected map in the Change Map dropdown*/
+	font-weight: bold;
+}
+
+.buttonPressed {
+	background-color: buttonshadow;
+}
+
+
+#legendDialog {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    opacity: 0.9;
+    left: 75%;
+    top: 10%;
+}
+
+#legendDialog:hover {
+	opacity: 1;
+}
+
+#printDialog {
+	height: 225px;
+	width: 350px;
+	display: none;
+	position: absolute;
+	background-color: #ffffff;
+	left: 600px;
+	top: 150px;
+}
+
+#printDialogDiv {
+	padding: 10px;
+	height: 130px;
+}
+
+#printDialog .form-horizontal .control-label {
+    float: left;
+    padding-left: 10px;
+    padding-top: 5px;
+    text-align: right;
+    width: 70px;
+}
+
+#printDialog .form-horizontal .controls {
+    margin-left: 100px;
+    padding-top: 5px;
+}
+
+#printResults {
+	display: block;
+    text-align: center;
+}
+
+#printResults a {
+	text-decoration: none;
+}
+
+#legendDiv {
+	margin: 10px 5px 5px 5px;
+}
+
+#changeMapButton {
+	margin-left: 20px;
+}
+
+#changeMapMenu {
+	margin-left: 20px;
+}

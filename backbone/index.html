@@ -7,10 +7,10 @@
     <title>Full Extent - Map Publishing Framework</title>
     <link rel="shortcut icon" href="http://fullextent.com.au/assets/ico/favicon.ico">
     <link rel="icon" type="image/ico" href="http://fullextent.com.au/assets/ico/favicon.ico">
-    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/esri/dijit/css/PopupMobile.css">
-    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/esri/dijit/css/Popup.css" />
-    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.2/js/esri/css/esri.css" />
-    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/redmond/jquery-ui.css" type="text/css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/dijit/css/PopupMobile.css">
+    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/dijit/css/Popup.css" />
+    <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css" />
+    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/redmond/jquery-ui.css" />
     <link href="css/bootstrap.css" rel="stylesheet" type="text/css" />    
     <link href="css/bootstrapmvc.css" rel="stylesheet" type="text/css" />
     <link href="css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
@@ -47,131 +47,7 @@
     </script-->
     
     <style type="text/css">
-		#doc-container {
-			background: none repeat scroll 0 0 white;
-			height: auto;
-			position: absolute;
-			right: 0;
-			top: 78px;
-			width: 488px;
-			z-index: 1;
-			max-height: 400px;
-			overflow: auto;
-			background-color: #EEEEEE;
-			background-image: -moz-linear-gradient(center top , whiteSmoke 0%, #EEEEEE 100%);
-			background-repeat: repeat-x;
-			border-radius: 0 0 0 0;
-			box-shadow: 0 2px 4px #888888;
-		}
-		#doc-container > li {
-			width: 216px;
-			height: auto;
-			float: left;
-			padding: 10px;
-		}
-		#doc-container > li:hover {    
-			background: white;
-		}
-		#doc-container > li > p  img{
-			height: auto!important;
-			width: 216px!important;
-		}
 		
-		.esriPopupWrapper .contentPane img {
-			height: auto;
-			width: 100%;
-		}    
-		
-		#layersButton:not(.buttonSelected) .loading {
-			/*over-ride the "loading" indicator since this is shown on the map itself */
-			background: none;
-		}
-				
-		#status {
-			display: none;
-			background-color: black; 
-			color: white; 
-			padding: 3px; 
-			border: solid 1px white;
-			-moz-border-radius: 5px;
-			-webkit-border-radius: 5px;
-			position: absolute;
-			z-index: 1000; 
-			right: 20px;
-		    top: 100px;
-		}
-		
-		.active {
-			/* bold the currently-selected map in the Change Map dropdown*/
-			font-weight: bold;
-		}
-		
-		.buttonPressed {
-			background-color: buttonshadow;
-		}
-		
-		
-		#legendDialog {
-		    display: none;
-		    position: absolute;
-		    background-color: #ffffff;
-		    opacity: 0.9;
-		    left: 75%;
-		    top: 10%;
-		}
-		
-		#legendDialog:hover {
-			opacity: 1;
-		}
-		
-		#printDialog {
-			height: 225px;
-			width: 350px;
-			display: none;
-			position: absolute;
-			background-color: #ffffff;
-			left: 600px;
-			top: 150px;
-		}
-		
-		#printDialogDiv {
-			padding: 10px;
-			height: 130px;
-		}
-		
-		#printDialog .form-horizontal .control-label {
-		    float: left;
-		    padding-left: 10px;
-		    padding-top: 5px;
-		    text-align: right;
-		    width: 70px;
-		}
-		
-		#printDialog .form-horizontal .controls {
-		    margin-left: 100px;
-		    padding-top: 5px;
-		}
-		
-		#printResults {
-			display: block;
-		    text-align: center;
-		}
-		
-		#printResults a {
-			text-decoration: none;
-		}
-		
-		#legendDiv {
-			margin: 10px 5px 5px 5px;
-		}
-		
-		#changeMapButton {
-			margin-left: 20px;
-		}
-		
-		#changeMapMenu {
-			margin-left: 20px;
-		}
 	      
 	    </style>
     
@@ -249,7 +125,7 @@
 	    			-->
     			</div>
     		</div>
-    		<div id="map" class="row-fluid fullmap">
+    		<div id="mapDiv" class="row-fluid fullmap">
     			<span id="status">Loading...</span>
     			
     		</div>
@@ -303,44 +179,28 @@
     </div>
     
     <!--Configuration for the ESRI maps-->
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
     <script type="text/javascript">djConfig={parseOnLoad:true};var userConfig={};</script>
-
-<!-- configuration now comes from the file http://localhost/mpf/admin/userConfig.js, to complete the MPF Admin round-trip-->
-    <!--script type="text/javascript" src="config/application.js"></script>
-    <script type="text/javascript" src="config/maps.js"></script>
-    <script type="text/javascript" src="config/layers.js"></script>
-    <script type="text/javascript" src="config/basemaps.js"></script-->
-    <script type="text/javascript" src="../../demos/bootstrap/config/userConfig.js"></script>
+    <script type="text/javascript" src="config/userConfig.js"></script>
     
     <!--common functionality-->
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.1.min.js"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.14/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="js/bootstrap.min.js" type="text/javascript" ></script>
-<!--    
-    <script type="text/javascript" src="../../mpf/scripts/common/plugins/modernizr.min.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/common/plugins/moment.min.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/common/plugins/jquery.json-2.3.min.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/common/plugins/jquery.gritter.min.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/common/toolbox.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/common/shortcuts.js"></script>
-     <script type="text/javascript" src="../../mpf/scripts/common/mapCategories.js"></script>
-     <script type="text/javascript" src="../../mpf/scripts/common/userInterface.js"></script>
-     <script type="text/javascript" src="../../mpf/scripts/common/sharing.js"></script>
+    <script type="text/javascript" src="js/resources/bootstrap.min.js" type="text/javascript" ></script>
+    <script type="text/javascript" src='js/resources/underscore-min.js' ></script>
+    <script type="text/javascript" src='js/resources/backbone-min.js' ></script>
     
-    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.2compact"></script>
-    <script type="text/javascript" src="../../mpf/scripts/esri/tasks.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/esri/main.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/esri/cluster.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/esri/ClusterLayer.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/esri/mapBasemaps.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/esri/mapLayers.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/esri/places.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/esri/dragDrop.js"></script>
-    <script type="text/javascript" src="../../mpf/scripts/esri/print.js"></script>
--->    
+    <!--define the Map model-->
+    <script src="js/mapModel.js"></script>
+ 
     <script type="text/javascript">
-    	
-		
+    	var feObj = {};
+    	dojo.addOnLoad(function () {
+    	    feObj.map1 = new fe.MapModel({
+    	    	div: "mapDiv",
+    	    	userConfig: testConfig                
+    	    });
+    	});
 	
 	</script>
     

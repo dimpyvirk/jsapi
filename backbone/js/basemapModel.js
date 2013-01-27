@@ -4,9 +4,10 @@ if (!this.fe || typeof this.fe !== 'object') {
 } 
 
 /* Map Model */
-fe.basemapModel = Backbone.Model.extend({
+fe.BasemapModel = Backbone.Model.extend({
     initialize: function (args) {
-    	var userConfig = args.userConfig;
+		var id = args.id;
+		var xxx = 0;
     
     }
 });

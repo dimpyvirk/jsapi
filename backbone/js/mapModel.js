@@ -85,63 +85,20 @@ fe.MapModel = Backbone.Model.extend({
         });
         
         //TODO: replace this with the proper basemaps
+        this.loadBasemaps(userConfig.basemaps);
         var tiledMapServiceLayer = new esri.layers.ArcGISTiledMapServiceLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer');
         this.map.addLayer(tiledMapServiceLayer);
         
         //Set listeners for various map events
         if(args.feZoomSlider) {
         	//Override the default zoom slider with a custom slider
-	        dojo.connect(this.map, 'onLoad', dojo.hitch(this, this.createCustomSlider));
+	        dojo.connect(this.map, 'onLoad', dojo.hitch(this, this.createCustomSlider, args.feZoomSlider));
 	    }
         dojo.connect(this.map, 'onExtentChange', dojo.hitch(this, this.extentChanged));
         
     },
-    createPopup: function() {
-	    var mapPopup = new esri.dijit.Popup({
-	    	fillSymbol: new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([255,0,0]), 2), new dojo.Color([255,255,0,0.25])),
-	    	lineSymbol: new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_DASH,
-	    	  new dojo.Color([255,0,0]), 3),
-	    	markerSymbol: new esri.symbol.SimpleMarkerSymbol('circle', 32, null, new dojo.Color([0, 0, 0, 0.25])),
-	    	//marginLeft: 10,
-	    	//marginTop: 10,
-	    	//offsetX:3,
-	    	//offsetY:3,
-	    	zoomFactor:4
-	    }, dojo.create("div"));
-	    return mapPopup;
-    },
-    extentChanged: function () {
-        var extent = {
-            xmin: this.map.extent.xmin.toFixed(0),
-            xmax: this.map.extent.xmax.toFixed(0),
-            ymin: this.map.extent.ymin.toFixed(0),
-            ymax: this.map.extent.ymax.toFixed(0)
-        };
-        this.set(extent);
-        
-    },
-    setValuesFromURL: function (){
-    	//TODO: interpret these URL-derived values and do something with them
-    	this.set("locateString",this.URLLookup("adr"));
-    	this.set("baseMap", decodeURIComponent(this.URLLookup("bm")));
-    	this.set("isEmbedded",this.URLLookup("embed"));
-    	this.set("placesTmp",this.URLLookup("plcs"));
-    	this.set("kmlURL",this.URLLookup("kml"));
-    	this.set("visLyrs",this.URLLookup("lrs"));
-    	// if visLyrs is set
-    	//if(visLyrs){
-    //		visLyrs = visLyrs.split(',');
-    //	}
-    	this.set("visMap",this.URLLookup("map"));
-    	
-    },
-    URLLookup: function (name) {
-    	var results = (new RegExp("[\\?&]"+name+"=([^&#]*)")).exec(window.location.href);
-    	if ( results == null ) {return null}
-    	else {return results[1]}
-    },
-    createCustomSlider: function () {
-    	jQuery('#zoomSliderDiv').html('<div id="zoomSliderPlus" title="Zoom in"></div><div id="zoomSliderCustom" title="Drag to zoom"></div><div id="zoomSliderMinus" title="Zoom out"></div>');
+    createCustomSlider: function (zoomSliderDiv) {
+    	jQuery('#' + zoomSliderDiv).html('<div id="zoomSliderPlus' + this.cid + '" title="Zoom in"></div><div id="zoomSliderCustom" title="Drag to zoom"></div><div id="zoomSliderMinus" title="Zoom out"></div>');
     	this.map.customMapSlider = jQuery("#zoomSliderCustom").slider({
     		min: 0,
     		max: this.map._params.lods.length - 1,
@@ -168,5 +125,60 @@ fe.MapModel = Backbone.Model.extend({
         });
     	// SHOW ZOOM SLIDER
     	jQuery('#zoomSliderDiv').show();
+    },
+    createPopup: function() {
+	    var mapPopup = new esri.dijit.Popup({
+	    	fillSymbol: new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([255,0,0]), 2), new dojo.Color([255,255,0,0.25])),
+	    	lineSymbol: new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_DASH,
+	    	  new dojo.Color([255,0,0]), 3),
+	    	markerSymbol: new esri.symbol.SimpleMarkerSymbol('circle', 32, null, new dojo.Color([0, 0, 0, 0.25])),
+	    	//marginLeft: 10,
+	    	//marginTop: 10,
+	    	//offsetX:3,
+	    	//offsetY:3,
+	    	zoomFactor:4
+	    }, dojo.create("div"));
+	    return mapPopup;
+    },
+    extentChanged: function () {
+        var extent = {
+            xmin: this.map.extent.xmin.toFixed(0),
+            xmax: this.map.extent.xmax.toFixed(0),
+            ymin: this.map.extent.ymin.toFixed(0),
+            ymax: this.map.extent.ymax.toFixed(0)
+        };
+        this.set(extent);
+        
+    },
+    loadBasemaps: function (basemaps) {
+    	var xxx = 0;
+    	for(var x = 0; x < basemaps.length; x++) {
+    		var bmConfig = basemaps[x];
+    		var basemap = new fe.BasemapModel({
+    			id: bmConfig.id
+    		
+    		});
+    	}
+    
+    },
+    setValuesFromURL: function (){
+    	//TODO: interpret these URL-derived values and do something with them
+    	this.set("locateString",this.URLLookup("adr"));
+    	this.set("baseMap", decodeURIComponent(this.URLLookup("bm")));
+    	this.set("isEmbedded",this.URLLookup("embed"));
+    	this.set("placesTmp",this.URLLookup("plcs"));
+    	this.set("kmlURL",this.URLLookup("kml"));
+    	this.set("visLyrs",this.URLLookup("lrs"));
+    	// if visLyrs is set
+    	//if(visLyrs){
+    //		visLyrs = visLyrs.split(',');
+    //	}
+    	this.set("visMap",this.URLLookup("map"));
+    	
+    },
+    URLLookup: function (name) {
+    	var results = (new RegExp("[\\?&]"+name+"=([^&#]*)")).exec(window.location.href);
+    	if ( results == null ) {return null}
+    	else {return results[1]}
     }
 });

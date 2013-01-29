@@ -203,36 +203,47 @@ testConfig = {
     {
       "id":"BingRoads",
       "title":"Bing - Road",
+      "bmType":"bing",
       "thumbnail":"http://fullextent.com.au/images/thumbnails/BingRoad_thumb.png",
-      "bing":true,
-      "mapStyle":"ROAD"
+      "params": {
+	      "mapStyle":"ROAD",
+	      "bingKey":"AqsBhjBtCIFp8uW5KMQ6j_heuOU9ORNS1ZdiGseSv0P44o2f13_RRijRh1HlFbTm"
+	  }
     },
     {
       "id":"BingAerial",
       "title":"Bing - Aerial",
-      "bing":true,
+      "bmType":"bing",
       "thumbnail":"http://fullextent.com.au/images/thumbnails/BingAerial_thumb.png",
-      "mapStyle":"AERIAL_WITH_LABELS"
+      "params": {
+	      "mapStyle":"AERIAL_WITH_LABELS",
+	      "bingKey":"AqsBhjBtCIFp8uW5KMQ6j_heuOU9ORNS1ZdiGseSv0P44o2f13_RRijRh1HlFbTm"
+	  }
     },
     {
       "id":"osm",
       "title":"OpenStreetmap",
+      "bmType":"osm",
       "thumbnail":"http://fullextent.com.au/images/thumbnails/osm.jpg",
-      "osm":true,
-      "copyrightText":"© <a href='http://www.openstreetmap.org/' target='_blank'>OpenStreetMap</a> contributors, <a href='http://creativecommons.org/licenses/by-sa/2.0/' target='_blank'>CC-BY-SA</a>"
+      "params": {
+	      "copyright":"© <a href='http://www.openstreetmap.org/' target='_blank'>OpenStreetMap</a> contributors, <a href='http://creativecommons.org/licenses/by-sa/2.0/' target='_blank'>CC-BY-SA</a>"
+	  }
     },
     {
       "id":"grey",
       "title":"grey",
+      "bmType": "esri",
       "thumbnail":"http://fullextent.com.au/images/thumbnails/Grey_thumb.png",
-      "services":[
-        {
-          "url":"http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer"
-        },
-        {
-          "url":"http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"
-        }
-      ]
+      "params": {
+	      "services":[
+	        {
+	          "url":"http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer"
+	        },
+	        {
+	          "url":"http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer"
+	        }
+	      ]
+	  }
     }
   ],
   "layers":[

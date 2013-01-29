@@ -92,7 +92,9 @@
 	    							<i class="icon-globe toggleMenu"></i>
 	    							<span class="hidden-phone toggleMenu">Basemap</span>
     							</span>
-	    						<div id="basemapMenu" class="slideMenu"></div>
+	    						<div id="basemapMenu" class="slideMenu">
+	    							<div id="baseContainer"></div>
+	    						</div>
     						</li>
     					</ul>
     					<ul id="RightTools" class="nav pull-right no-collapse">
@@ -191,6 +193,7 @@
     <script type="text/javascript" src='js/resources/backbone-min.js' ></script>
     
     <!--define the models, views and collections-->
+    <script src="js/main.js"></script>
     <script src="js/mapModel.js"></script>
     <script src="js/basemapModel.js"></script>
     
@@ -205,7 +208,7 @@
     	    	feZoomSlider: "zoomSliderDiv"              
     	    });
     	});
-	
+    	
 	</script>
     
  

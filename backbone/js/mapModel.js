@@ -6,14 +6,13 @@ if (!this.fe || typeof this.fe !== 'object') {
 //Load the required DOJO libraries
 dojo.require('esri.map');
 dojo.require("esri.dijit.Popup");
+dojo.require("esri.layers.osm");
+dojo.require("esri.virtualearth.VETiledLayer");
 
 /* Map Model */
 fe.MapModel = Backbone.Model.extend({
     initialize: function (args) {
     	var userConfig = args.userConfig;
-    	
-    	//Define some arrays and counters, used to keep track of layers, extents, etc
-    	this.set("basemapArray", {});
     	
     	//Retrieve any parameters specified in the URL (eg extent, basemap, layers, etc)
     	var sXmin = parseFloat(this.URLLookup("xmin"));
@@ -151,15 +150,49 @@ fe.MapModel = Backbone.Model.extend({
         
     },
     loadBasemaps: function (basemaps) {
-    	var xxx = 0;
-    	for(var x = 0; x < basemaps.length; x++) {
-    		var bmConfig = basemaps[x];
+    	//Create a collection of basemaps
+    	var basemapCollection = new fe.BasemapCollection({
+	    	//iniitialisaton options?
+	    });
+	     
+	    var html = '';  
+    	for(var i = 0; i < basemaps.length; i++) {
+    		var bmConfig = basemaps[i];
     		var basemap = new fe.BasemapModel({
-    			id: bmConfig.id
+    			id: bmConfig.id,
+    			title: bmConfig.title,
+    			bmType: bmConfig.bmType,
+    			params: bmConfig.params    		
+    		});
+    		basemapCollection.add(basemap);
     		
+    		var extraClass = '';
+    		var clearDiv = false;
+    		if((i + 1) % 2 === 0){
+    			extraClass = 'MB ML';
+    			clearDiv = true;
+    			if((i + 1) === basemaps.length){
+    				extraClass = 'ML';
+    			}
+    		}
+    		var bmSelected = '';
+    		if(i === 0){
+    			bmSelected = 'basemapSelected';
+    		}
+    		
+    		//html += '<div id="basemap' + i + '" title="Switch to the ' + bmConfig.title + ' Basemap" class="baseMap ' + bmSelected + ' ' + extraClass + '"><div class="baseImage"><img width="100" height="67" class="BG" src="' + bmConfig.options.thumbnail + '" /></div><div class="baseTitle">' + bmConfig.title + '</div></div>';
+    		   		
+    		//var basemapView = new fe.BasemapView({ el: jQuery("#basemap" + i) });
+    		var basemapView = new fe.BasemapView({
+    			id: bmConfig.id,
+    			title: bmConfig.title,
+    			thumbnail: bmConfig.thumbnail,
+    			params: bmConfig.params
     		});
     	}
-    
+    	
+    	//jQuery('#baseContainer').html(html); 
+    	
     },
     setValuesFromURL: function (){
     	//TODO: interpret these URL-derived values and do something with them

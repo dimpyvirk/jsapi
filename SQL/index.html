@@ -185,8 +185,15 @@
       			jQuery("#SQLquery").show();
       		}
       	});
-      
-      
+      	
+      	jQuery("#btnSQLcancel").click(function () {
+      		jQuery("#SQLquery").hide();
+      	});
+      	
+      	jQuery("#btnSQLsubmit").click(function () {
+      		alert("submit query");
+      	});
+      	
       	jQuery("#SQLLayerList").change(function () {
       		//If the Layer changes, update the dropdowns
       		updateSQLqueryFields();
@@ -338,6 +345,10 @@
 								</div>
 							</div>
 						</form>
+
+						<button id="btnSQLsubmit" type="button">Query</button>						
+						<button id="btnSQLcancel" type="button">Cancel</button>
+
 					</div><!--wrapper-->
 				</div> <!--SQLquery-->
 	

@@ -17,7 +17,20 @@ weszt@hanamidesign.com
 	display: none;
 }
 
-#wrapper {-moz-border-radius:4px 4px 0 0;-moz-box-shadow:0px 4px 10px #999;-webkit-border-radius:4px 4px 0 0;-webkit-box-shadow:0px 4px 10px #999;background:#ededed;border:1px solid #98999c;border-radius:4px 4px 0 0;box-shadow:0px 4px 10px #999;font-family: "HelveticaNeue", Helvetica, Arial, Sans-serif;font-size:110%;margin-bottom:1em;}
+#wrapper {
+	-moz-border-radius:4px 4px 0 0;
+	-moz-box-shadow:0px 4px 10px #999;
+	-webkit-border-radius:4px 4px 0 0;
+	-webkit-box-shadow:0px 4px 10px #999;
+	background:#ededed;
+	border:1px solid #98999c;
+	border-radius:4px 4px 0 0;
+	box-shadow:0px 4px 10px #999;
+	font-family: "HelveticaNeue", Helvetica, Arial, Sans-serif;
+	font-size:110%;
+	margin-bottom:1em;
+	padding-bottom: 25px;
+}
 
 #wrapper form  {
     padding-top: 20px;
@@ -32,18 +45,22 @@ weszt@hanamidesign.com
 
 #rule-group {-moz-box-shadow:inset 0px 0px 4px #999;-webkit-box-shadow:inset 0px 0px 4px #999;background:#e5e5e5;border:1px solid #ccc;border-radius:4px;box-shadow:inset 0px 0px 4px #999;margin:1em;}
 
-#rule-group input,
-#rule-group select {width:13em;}
+#rule-group select {
+	width:13em;
+}
+#rule-group input {
+    width: 17em;
+}
 
 #rule-group .plus,
 #rule-group .minus,
 #rule-group .expand {background:url(iTunes-buttons.png) 0 0 no-repeat;display:inline-block;font-size:0;height:23px;margin:-4px 2px 0;width:22px;vertical-align:middle;text-indent:-9999px;}
 
-/*
-#rule-group .plus {background-position:-34px -3px;}
-#rule-group .minus {background-position:-34px -3px;}
-#rule-group .expand {background-position:-34px -3px;}
-*/
+#wrapper > button {
+    float: right;
+    margin-right: 15px;
+    padding-bottom: 10px;
+}
 
 #rule-group .plus {background-position:-34px -37px;}
 #rule-group .minus {background-position:-4px -37px;}

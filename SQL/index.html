@@ -6,7 +6,7 @@
   <!--The viewport meta tag is used to improve the presentation and behavior of the samples 
       on iOS devices-->
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
-    <title>Select By Attributs</title> 
+    <title>Select By Attributes</title> 
     <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/dojo/dijit/themes/claro/claro.css">
     <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
     <link rel="stylesheet" href="SQLselect.css" type="text/css" media="screen, projection" />
@@ -36,6 +36,12 @@
       		"id": "LGA",
       		"layerType": "feature",
       		"url": "http://services.azuron.com/arcgis/rest/services/ABS/BasicCommunityProfile_2011/MapServer/2",
+      		"layerInfo": {
+      			"title": "Local government areas",
+      			"minScale": 50000,
+      			"maxScale": 100000,
+      			"queryable": true
+      		},
       		"attributes": [
       		{
       			"name": "Name",
@@ -52,10 +58,69 @@
       			"type": "esriFieldTypeInteger",
       			"alias": "Age 0 - 4",
       			"query": false
-      		}],
-      		
+      		}]	
+      	},{
+      	
+      	  "id":"world-heritage",
+      	  "layerType":"feature",
+      	  "url":"http://services.azuron.com/arcgis/rest/services/GeoScience/ProtectedAreas/MapServer/1",
+      	  "layerInfo":{
+      	    "title":"World Heritage areas",
+      	    "description":"Areas listed by UNESCO as World Heritage sites in New South Wales.",
+      	    "visible":true,
+      	    "showLegend":true,
+      	    "queryable": true
+      	  },
+      	  "attributes":[
+      	    {
+      	      "name":"WHA_NAME",
+      	      "alias":"Name"
+      	    },
+      	    {
+      	      "alias":"Area (sqm)",
+      	      "name":"Shape_Area"
+      	    }
+      	  ],
+      	  "infoWindow":{
+      	    "title":"World Heritage Area"
+      	  }
+      	},{
+      	
+      	  "url":"http://services.azuron.com/arcgis/rest/services/GeoScience/ProtectedAreas/MapServer/0",
+      	  "layerType":"feature",
+      	  "mode":"snapshot",
+      	  "clusterImage":"",
+      	  "id":"declared-wilderness",
+      	  "layerInfo":{
+      	    "title":"Declared Wilderness areas",
+      	    "description":"Boundaries of declared wilderness areas in NSW under S.59(1) of the NP&W Act 1974 and S.8 of the Wilderness Act 1987. Wilderness Act 1987. The Wilderness Act 1987 was introduced to identify, protect and manage wilderness areas.",
+      	    "definitionExpression":"",
+      	    "visible":true,
+      	    "transparency":"",
+      	    "transparencySlider":false,
+      	    "showLegend":true,
+      	    "minScale":"",
+      	    "maxScale":""
+      	  },
+      	  "infoWindow":{
+      	    "title":"Declared Wilderness",
+      	    "height":"",
+      	    "width":""
+      	  },
+      	  "click":true,
+      	  "hover":true,
+      	  "attributes":[
+      	    {
+      	      "name":"DECNAME",
+      	      "alias":"Name"
+      	    },
+      	    {
+      	      "name":"FIRSTDATE",
+      	      "alias":"Dedication date"
+      	    }
+      	  ]
       	}
-      ];
+      ]
       
       function init() {
         var extent = new esri.geometry.Extent({"xMin": 15000000,"yMin": -4500000,"xMax": 17500000,"yMax": -3000000,"spatialReference":{"wkid":102113}});
@@ -66,32 +131,44 @@
           zoom: 10
         });
         
-        var template = new esri.InfoTemplate("${Name}","Population: ${Tot_P_P}");
-        var featDef = userConfig.layers[0];
-        var outFields = [];
-        for(var x = 0; x < featDef.attributes.length; x++) {
-        	var outField = featDef.attributes[x].name;
-        	outFields.push(outField);        
-        }        
+        //Add layers
+        feMap.queryLayers = [];
+        for(var i = 0; i < userConfig.layers.length; i++) {
         
-        var featureLayer = new esri.layers.FeatureLayer(featDef.url,{
-          mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
-          outFields: outFields,
-          infoTemplate:template
-        });
-        
-        feMap.mapFrame.addLayer(featureLayer);
-        feMap.queryLayers = [featureLayer];
+	        var template = new esri.InfoTemplate("info window","${*}");
+	        var featDef = userConfig.layers[i];
+	        var outFields = [];
+	        for(var x = 0; x < featDef.attributes.length; x++) {
+	        	var outField = featDef.attributes[x].name;
+	        	outFields.push(outField);        
+	        }        
+	        
+	        var featureLayer = new esri.layers.FeatureLayer(featDef.url,{
+	          mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
+	          outFields: outFields,
+	          infoTemplate:template
+	        });
+	        
+	        feMap.mapFrame.addLayer(featureLayer);
+	        if(featDef.layerInfo.queryable) {feMap.queryLayers.push(featDef);}
+	    }
         
         
         jQuery("#btnSQLselect").click(function () {
         	if(jQuery("#SQLselect").is(":visible")) {
 	        	jQuery("#SQLselect").hide();
 	        } else {
+	        	//Populate the layers list with all queryable layers
+	        	for(var x = 0; x < feMap.queryLayers.length; x++) {
+	        		var queryLayer = feMap.queryLayers[x];
+	        		var queryLayerName = queryLayer.layerInfo.title;	
+	        		jQuery("#SQLLayerList").append(new Option(queryLayerName, queryLayerName));
+	        	
+	        	}	        
 				jQuery("#SQLselect").show();
 			}        
         });
-      
+              
       }
 
 
@@ -103,24 +180,30 @@
 			<div id="map" style="width:100%;height:100%;">
 			
 				<button id="btnSQLselect" type="button">Select by Attributes</button>
-	     
+				
 				<div id="SQLselect" class="draggable">
 					<div id="wrapper">
 						<div id="rule-header"> Select By Attributes </div>
 						<form>
+							<div id="SQLLayers">
+								<select id="SQLLayerList">
+								</select>
+							</div>
 							<div id="rule-group">
 								<div class="rule" id="rule">
-									<select id="field">
+									<select id="SQLField">
+									
 										<option value="reachcode">reachcode</option>
 										<option value="ftype">ftype</option>
 									</select>
-									<select id="selectType">
+									<select id="SQLOperator">
+								
 										<option value="contains">contains</option>
 										<option value="does not contain">does not contain</option>
 										<option value="is">is</option>
 										<option value="is not">is not</option>
 									</select>
-									<input type="text" id="text" />
+									<input id="SQLType" type="text" />
 									<a href="#" class="minus"></a> <a href="#" class="plus"></a>
 								</div>
 							</div>

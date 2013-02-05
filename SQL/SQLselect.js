@@ -5,41 +5,26 @@ an experiment by Weszt @ Hanami Design
 weszt@hanamidesign.com
 
  -----------------------------------------------*/
-
-$(function() {
-	
+jQuery(function() {
 	var counter = 0;
-			
 	checkChildCount()
-	
-	$('.rule').live( 'click', function(e){		
-		
-		switch($(e.target).attr("class")){
-			
+	jQuery('.rule').live( 'click', function(e){		
+		switch(jQuery(e.target).attr("class")){
 			case 'plus':
-			
 				counter++;						
-				
-				var newItem = $(this).clone();			
+				var newItem = jQuery(this).clone();			
 				newItem.insertAfter(this).attr('id', 'rule' + counter);
-				$(':input','#rule' + counter)
+				jQuery(':input','#rule' + counter)
 				 .not(':button, :submit, :reset, :hidden')
 				 .val('')
 				 .removeAttr('checked')
 				 .removeAttr('selected');
-			
 				break;
-			
 			case 'minus':
-			
-				$(this).remove();	
-				
+				jQuery(this).remove();	
 				break;	
-				
 			case 'minus disabled':
-			
 				break;
-				
 		}
 			checkChildCount();
 		}
@@ -47,13 +32,10 @@ $(function() {
 	);
 	
 	function checkChildCount(){
-	
-		if($("#rule-group").children().size() >= 2){
-			$("#rule-group .rule .minus").removeClass("disabled");
+		if(jQuery("#rule-group").children().size() >= 2){
+			jQuery("#rule-group .rule .minus").removeClass("disabled");
 		} else {
-			$("#rule-group .rule .minus").addClass("disabled");
+			jQuery("#rule-group .rule .minus").addClass("disabled");
 		}
 	}
-	
-	
 });

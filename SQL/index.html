@@ -206,51 +206,57 @@
         	     	
         });
         
-        function updateSQLqueryFields() {
-        	//Update the dropdowns with the fields from this layer
-        
-	        //Remove any additional query levels from previous usages
-	        jQuery('.rule').each(function (index, row) {
-	            if(index > 0) {
-	            	jQuery(this).remove();
-	            }
-	        });      
-	        
-        	//Find the layer in the QueryLayers list
-        	var layerId = jQuery("#SQLLayerList").val();
-        	var success = false;
-        	for(var x =0; x < feMap.SQLqueryLayers.length; x++) {
-        		var layer = feMap.SQLqueryLayers[x];
-        		if (layer.id == layerId) {
-        			success = true;
-        			feMap.SQLqueryLayers.activeLayerIdx = x;
-        			break;
-        		}
-        	}
-        	if (!success) {
-        		alert("unable to find the matching query layer");
-        		return null;
-        	} else if (layer.attributes == null) {
-				alert("no attributes defined for this layer");
-				return null;
+		function updateSQLqueryFields() {
+		//Update the dropdowns with the fields from this layer
+		
+		//Remove any additional query levels from previous usages
+		jQuery('.rule').each(function (index, row) {
+		    if(index > 0) {
+		    	jQuery(this).remove();
+		    }
+		});      
+		
+		//Find the layer in the QueryLayers list
+		var layerId = jQuery("#SQLLayerList").val();
+		var success = false;
+		for(var x =0; x < feMap.SQLqueryLayers.length; x++) {
+			var layer = feMap.SQLqueryLayers[x];
+			if (layer.id == layerId) {
+				success = true;
+				feMap.SQLqueryLayers.activeLayerIdx = x;
+				break;
 			}
-        	
-        	//Add the layer's fields to the Fields dropdown. Use the alias if specified
-        	jQuery(".SQLField").empty();
-        	for(var y = 0; y < layer.attributes.length; y++) {
-        		var field = layer.attributes[y];
-        		if(field.query) {
-	        		var alias = field.alias || field.name;
-	        		var option = new Option(alias,field.name);
-	        		jQuery(".SQLField").append(option);
-	        	}
-           	}
-        	  	
-        }
+		}
+		if (!success) {
+			alert("unable to find the matching query layer");
+			return null;
+		} else if (layer.attributes == null) {
+			alert("no attributes defined for this layer");
+			return null;
+		}
+		
+		//Add the layer's fields to the Fields dropdown. Use the alias if specified
+		jQuery(".SQLField").empty();
+		for(var y = 0; y < layer.attributes.length; y++) {
+			var field = layer.attributes[y];
+			if(field.query) {
+				var alias = field.alias || field.name;
+				var option = new Option(alias,field.name);
+				jQuery(".SQLField").append(option);
+			}
+		}
+			
+		//Populate the SQL Operator dropdown for the first attribute
+		var fieldType = layer.attributes[0].type;
+		var SQLOperator = jQuery("#rule")[0].children[1];
+		populateSQLOperator(fieldType, SQLOperator);
+
+		}
               
       }
       
       function populateSQLOperator(fieldType, SQLOperator) {
+      	//Add the appropriate values (eg less than, starts with) in the SQL Operator dropdown
       	if(fieldType in inArray(["esriFieldTypeInteger","esriFieldTypeInteger","esriFieldTypeSmallInteger","esriFieldTypeDouble","esriFieldTypeSingle","esriFieldTypeOID"])) {
       		
       		//Add SQL operators relevant for numbers
@@ -268,7 +274,9 @@
       		jQuery(SQLOperator).append(new Option("contains","contains")); //TODO should this be LIKE?
       		jQuery(SQLOperator).append(new Option("starts with","starts with"));
       		jQuery(SQLOperator).append(new Option("ends with","ends with"));
-      	}      	
+      	} else {
+			alert("layer type not supported");
+		}     	
       }
       
       function inArray(a)

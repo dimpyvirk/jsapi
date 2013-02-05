@@ -76,14 +76,20 @@ function updateSQLqueryFields() {
 		}
 	}
 
-	//Populate the SQL Operator dropdown for the first attribute
+	//Populate the SQL Operator and SQL Text dropdowns for the first attribute
 	var fieldType = layer.attributes[0].type;
 	var SQLOperator = jQuery("#rule")[0].children[1];
-	populateSQLOperator(fieldType, SQLOperator);
-
+	var SQLText = jQuery("#rule")[0].children[2];	
+	populateSQLOperator(fieldType, SQLOperator, SQLText);
+	
 }
 
-function populateSQLOperator(fieldType, SQLOperator) {
+function populateSQLOperator(fieldType, SQLOperator, SQLText) {
+
+	//Clear the text input box
+	SQLText.value = ("");
+	jQuery(SQLText).removeClass("feNumeric");
+	
 	//Add the appropriate values (eg less than, starts with) in the SQL Operator dropdown
 	if (fieldType in inArray(["esriFieldTypeInteger", "esriFieldTypeInteger", "esriFieldTypeSmallInteger", "esriFieldTypeDouble", "esriFieldTypeSingle", "esriFieldTypeOID"])) {
 	
@@ -93,6 +99,10 @@ function populateSQLOperator(fieldType, SQLOperator) {
 		jQuery(SQLOperator).append(new Option("does not equal", "!="));
 		jQuery(SQLOperator).append(new Option("is less than", "<")); //TODO should this be LIKE?
 		jQuery(SQLOperator).append(new Option("is greater than", ">"));
+		
+		//Enforce numeric values for the text field
+		jQuery(SQLText).addClass("feNumeric");
+		
 	} else if (fieldType == "esriFieldTypeString") {
 		
 		//Add SQL operators relevant for text
@@ -105,27 +115,29 @@ function populateSQLOperator(fieldType, SQLOperator) {
 	} else {
 		alert("layer type not supported in Select by Attributes");
 	}
+	
 }      	
 
 function SQLfindFieldType(row) {
 	//Find the layer in the QueryLayers list
 	var layer = feMap.SQLqueryLayers[feMap.SQLqueryLayers.activeLayerIdx];
 	
-	//Find the selected field and retrieve its type
+	//Find the selected field
 	var fieldId = row.options[row.options.selectedIndex].value;
 	
-	//Find the relevant SQL Operator for this row
-	var SQLOperator = row.parentNode.children[1];
+	//Find the text box for this row
+	var SQLText = row.parentNode.children[2];
 	
+	//Find the relevant SQL Operator for this row and populate it with the relevant values
+	//depending on whether it's numeric or string
+	var SQLOperator = row.parentNode.children[1];
 	var success = false;
 	for (var x = 0; x < layer.attributes.length; x++) {
 		var field = layer.attributes[x];
 		if (field.name == fieldId) {
 			success = true;
-			
-			//Find the field type, and the SQL Operator dropdown for this row
 			var fieldType = field.type;
-			populateSQLOperator(fieldType, SQLOperator);
+			populateSQLOperator(fieldType, SQLOperator, SQLText);
 			break;
 		}
 	}

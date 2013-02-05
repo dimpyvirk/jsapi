@@ -19,6 +19,9 @@ jQuery(function() {
 				 .val('')
 				 .removeAttr('checked')
 				 .removeAttr('selected');
+				 
+				 //Update the SQL Operator dropdown for this row
+				 findFieldType(newItem[0].children[0]);
 				break;
 			case 'minus':
 				jQuery(this).remove();	

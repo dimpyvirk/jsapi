@@ -5,6 +5,7 @@ if (!this.fe || typeof this.fe !== 'object') {
 
 /* Map Model */
 fe.BasemapModel = Backbone.Model.extend({
+	//An individual basemap object
     initialize: function (args) {
 		var id = args.id;
 		var title = args.title;
@@ -43,15 +44,12 @@ fe.BasemapModel = Backbone.Model.extend({
 				});
 				break;
 			case "esri":
+				//TODO: add the Esri basemap
 				break;
 			default:
 				alert("invalid basemap type");
 				return null;
-			
 		}
-		
-		//Add the basemap to the basemapCollection
-		
     }
 });
 
@@ -62,30 +60,39 @@ fe.BasemapCollection = Backbone.Collection.extend({
 	},
 	add:  function(basemap) {
 		if(basemap.id) {
-			console.log("adding ", basemap);
+			console.log("adding basemap to collection: ", basemap);
 		}
+	},
+	onSelectBasemap: function () {
+		alert("basemap selected");
+	
 	} 
 });
 
+fe.BasemapsView = Backbone.View.extend({
 
-fe.BasemapView = Backbone.View.extend({
+
+});
+
+
+fe.BasemapItemView = Backbone.View.extend({
+	//The button to select an individual basemap
 	model: fe.BasemapModel,
 	el: "#baseContainer",
     initialize: function(){
-    	//this.template = jQuery('#baseContainer').children();
+    	this.collection = fe.BasemapCollection;
         this.render();
     },
     render: function(){
-	    var html = '<div id="' + this.options.id + '" title="Switch to the ' + this.options.title + ' Basemap" class="baseMap ' + "bmSelected" + ' ' + "extraClass" + '">'
+    	//Add a new basemap item to the basemap dropdown
+	    var html = '<div id="' + this.options.id + '" title="Switch to the ' + this.options.title + ' Basemap" class="baseMap ' + this.options.bmSelected + ' ' + this.options.extraClass + '">'
 	    html += '<div class="baseImage"><img width="100" height="67" class="BG" src="' + this.options.thumbnail + '" /></div><div class="baseTitle">' + this.options.title + '</div></div>'
         jQuery(this.el).append(html);
-        //this.$el.append(html);
     },
     events: {
-        "click div": "changeBasemap"  
+        "click div .baseMap": "changeBasemap"  
     },
     changeBasemap: function () {
-    	alert("change basemap " + this.id);
-    
+    	alert("change basemap " + this.id);    
     }
 });

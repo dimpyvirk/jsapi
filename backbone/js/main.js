@@ -12,15 +12,13 @@ function toggleMenus(menuObj, buttonObj){
 	var currentlyOpen = jQuery('.slideMenu').filter(':visible');
 	var currentlyOpenID = '#'+currentlyOpen.attr('id');
 	hideLayerInfo();
-	//jQuery('#topMenuCon .mapButton').removeClass('buttonSelected');
 	jQuery('.mapButton').removeClass('buttonSelected');
 	if(currentlyOpenID !== menuObj && menuObj){
 		currentlyOpen.slideUp('fast',showMenu(menuObj, buttonObj));
 	}
 	else{
 		currentlyOpen.slideUp('fast');
-	}
-	
+	}	
 }
 
 function showMenu(menuObj, buttonObj){

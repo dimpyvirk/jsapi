@@ -84,9 +84,11 @@ fe.MapModel = Backbone.Model.extend({
         });
         
         //TODO: replace this with the proper basemaps
-        this.loadBasemaps(userConfig.basemaps);
         var tiledMapServiceLayer = new esri.layers.ArcGISTiledMapServiceLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer');
         this.map.addLayer(tiledMapServiceLayer);
+        
+        //work in progress:
+        this.loadBasemaps(userConfig.basemaps);
         
         //Set listeners for various map events
         if(args.feZoomSlider) {
@@ -155,6 +157,7 @@ fe.MapModel = Backbone.Model.extend({
 	    	//iniitialisaton options?
 	    });
 	     
+	    //Add each basemap to the Basemap container
 	    var html = '';  
     	for(var i = 0; i < basemaps.length; i++) {
     		var bmConfig = basemaps[i];
@@ -164,8 +167,7 @@ fe.MapModel = Backbone.Model.extend({
     			bmType: bmConfig.bmType,
     			params: bmConfig.params    		
     		});
-    		basemapCollection.add(basemap);
-    		
+    		    		
     		var extraClass = '';
     		var clearDiv = false;
     		if((i + 1) % 2 === 0){
@@ -180,19 +182,17 @@ fe.MapModel = Backbone.Model.extend({
     			bmSelected = 'basemapSelected';
     		}
     		
-    		//html += '<div id="basemap' + i + '" title="Switch to the ' + bmConfig.title + ' Basemap" class="baseMap ' + bmSelected + ' ' + extraClass + '"><div class="baseImage"><img width="100" height="67" class="BG" src="' + bmConfig.options.thumbnail + '" /></div><div class="baseTitle">' + bmConfig.title + '</div></div>';
-    		   		
-    		//var basemapView = new fe.BasemapView({ el: jQuery("#basemap" + i) });
-    		var basemapView = new fe.BasemapView({
+       		var basemapItemView = new fe.BasemapItemView({
     			id: bmConfig.id,
     			title: bmConfig.title,
     			thumbnail: bmConfig.thumbnail,
-    			params: bmConfig.params
+    			params: bmConfig.params,
+    			extraClass: extraClass,
+    			bmSelected: bmSelected
     		});
+    		
+    		basemapCollection.add(basemapItemView);
     	}
-    	
-    	//jQuery('#baseContainer').html(html); 
-    	
     },
     setValuesFromURL: function (){
     	//TODO: interpret these URL-derived values and do something with them

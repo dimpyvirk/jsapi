@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
+<html> 
+  <head> 
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9" /> 
+  <!--The viewport meta tag is used to improve the presentation and behavior of the samples 
+      on iOS devices-->
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Select By Attributs</title> 
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
+    <link rel="stylesheet" href="SQLselect.css" type="text/css" media="screen, projection" />
+    <style>
+      html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
+    </style>
+    <script type="text/javascript">djConfig = { parseOnLoad:true };</script> 
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.14/jquery-ui.min.js"></script>
+    <script language="javascript" src="SQLselect.js"></script> 
+    <script>
+    	$(function() {
+    		$( "#wrapper" ).draggable();
+    	});
+    	</script>
+    <script type="text/javascript"> 
+      dojo.require("esri.map");
+      dojo.require("esri.layers.FeatureLayer");
+      dojo.require("dijit.form.Button");
+      dojo.require("dijit.Dialog");
+
+      var feMap = {};
+      var userConfig = {};
+      userConfig.layers = [
+      	{
+      		"id": "LGA",
+      		"layerType": "feature",
+      		"url": "http://services.azuron.com/arcgis/rest/services/ABS/BasicCommunityProfile_2011/MapServer/2",
+      		"attributes": [
+      		{
+      			"name": "Name",
+				"type": "esriFieldTypeString",
+				"alias": "Name",
+				"query": true
+      		}, {
+      			"name": "Tot_P_P",
+				"type": "esriFieldTypeInteger",
+				"alias": "Total population",
+				"query": true
+      		}, {
+      			"name": "Age_0_4_yr_F",
+      			"type": "esriFieldTypeInteger",
+      			"alias": "Age 0 - 4",
+      			"query": false
+      		}],
+      		
+      	}
+      ];
+      
+      function init() {
+        var extent = new esri.geometry.Extent({"xMin": 15000000,"yMin": -4500000,"xMax": 17500000,"yMax": -3000000,"spatialReference":{"wkid":102113}});
+        
+        feMap.mapFrame = new esri.Map("map",{
+          basemap: "topo",
+          center: [151, -32.5],
+          zoom: 10
+        });
+        
+        var template = new esri.InfoTemplate("${Name}","Population: ${Tot_P_P}");
+        var featDef = userConfig.layers[0];
+        var outFields = [];
+        for(var x = 0; x < featDef.attributes.length; x++) {
+        	var outField = featDef.attributes[x].name;
+        	outFields.push(outField);        
+        }        
+        
+        var featureLayer = new esri.layers.FeatureLayer(featDef.url,{
+          mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
+          outFields: outFields,
+          infoTemplate:template
+        });
+        
+        feMap.mapFrame.addLayer(featureLayer);
+        feMap.queryLayers = [featureLayer];
+        
+        
+        jQuery("#btnSQLselect").click(function () {
+        	if(jQuery("#SQLselect").is(":visible")) {
+	        	jQuery("#SQLselect").hide();
+	        } else {
+				jQuery("#SQLselect").show();
+			}        
+        });
+      
+      }
+
+
+      dojo.addOnLoad(init);
+    </script> 
+  </head> 
+	<body class="claro"> 
+		<div style="position:relative;width:100%;height:100%;"> 
+			<div id="map" style="width:100%;height:100%;">
+			
+				<button id="btnSQLselect" type="button">Select by Attributes</button>
+	     
+				<div id="SQLselect" class="draggable">
+					<div id="wrapper">
+						<div id="rule-header"> Select By Attributes </div>
+						<form>
+							<div id="rule-group">
+								<div class="rule" id="rule">
+									<select id="field">
+										<option value="reachcode">reachcode</option>
+										<option value="ftype">ftype</option>
+									</select>
+									<select id="selectType">
+										<option value="contains">contains</option>
+										<option value="does not contain">does not contain</option>
+										<option value="is">is</option>
+										<option value="is not">is not</option>
+									</select>
+									<input type="text" id="text" />
+									<a href="#" class="minus"></a> <a href="#" class="plus"></a>
+								</div>
+							</div>
+						</form>
+					</div><!--wrapper-->
+				</div> <!--SQLselect-->
+	
+	
+			</div> <!--map-->
+		</div> <!--page-->
+	</body> 
+</html>

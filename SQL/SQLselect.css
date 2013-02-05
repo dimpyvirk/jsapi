@@ -1,0 +1,55 @@
+/* -----------------------------------------------
+
+iTunes Smart Playlist 
+an experiment by Weszt @ Hanami Design 
+weszt@hanamidesign.com
+
+ -----------------------------------------------*/
+
+/* wrapper */
+
+#SQLselect {
+	
+	width: 630px;
+	height: 150px;
+	position: absolute;
+	z-index: 1001;
+	display: none;
+}
+
+#wrapper {-moz-border-radius:4px 4px 0 0;-moz-box-shadow:0px 4px 10px #999;-webkit-border-radius:4px 4px 0 0;-webkit-box-shadow:0px 4px 10px #999;background:#ededed;border:1px solid #98999c;border-radius:4px 4px 0 0;box-shadow:0px 4px 10px #999;font-family: "HelveticaNeue", Helvetica, Arial, Sans-serif;font-size:110%;margin-bottom:1em;}
+
+#rule-header {background: #a8a8a8;background: -moz-linear-gradient(top, #a8a8a8 0%, #d8d8d8 100%);background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#a8a8a8), color-stop(100%,#d8d8d8));background: -webkit-linear-gradient(top, #a8a8a8 0%,#d8d8d8 100%);background: -o-linear-gradient(top, #a8a8a8 0%,#d8d8d8 100%);background: -ms-linear-gradient(top, #a8a8a8 0%,#d8d8d8 100%);filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a8a8a8', endColorstr='#d8d8d8',GradientType=0 );background: linear-gradient(top, #a8a8a8 0%,#d8d8d8 100%);border-bottom:1px solid #515151;font-weight:500;padding:.2em;text-align:center;text-shadow:1px 1px 1px #ddd;}
+
+#rule-group {-moz-box-shadow:inset 0px 0px 4px #999;-webkit-box-shadow:inset 0px 0px 4px #999;background:#e5e5e5;border:1px solid #ccc;border-radius:4px;box-shadow:inset 0px 0px 4px #999;margin:1em;}
+
+#rule-group input,
+#rule-group select {width:13em;}
+
+#rule-group .plus,
+#rule-group .minus,
+#rule-group .expand {background:url(iTunes-buttons.png) 0 0 no-repeat;display:inline-block;font-size:0;height:23px;margin:-4px 2px 0;width:22px;vertical-align:middle;text-indent:-9999px;}
+
+/*
+#rule-group .plus {background-position:-34px -3px;}
+#rule-group .minus {background-position:-34px -3px;}
+#rule-group .expand {background-position:-34px -3px;}
+*/
+
+#rule-group .plus {background-position:-34px -37px;}
+#rule-group .minus {background-position:-4px -37px;}
+#rule-group .minus.disabled {background-position:-4px -3px;}
+#rule-group .expand {background-position:-63px -37px;}
+
+.minus.disabled {color:#999;cursor:default;}
+.rule {
+	padding-bottom: 0.25em;
+    padding-top: 0.25em;
+    position:relative;
+}
+
+.rule a,
+.rule input,
+.rule select {margin:0 .5em}
+
+.rule a {text-decoration:none;}

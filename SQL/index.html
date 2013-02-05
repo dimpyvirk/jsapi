@@ -75,10 +75,12 @@
       	    {
       	      "name":"WHA_NAME",
       	      "alias":"Name",
+      	      "type": "esriFieldTypeString",
       	      "query": true
       	    },
       	    {
       	      "alias":"Area (sqm)",
+      	      "type": "esriFieldTypeDouble",
       	      "name":"Shape_Area"
       	    }
       	  ],
@@ -133,7 +135,7 @@
         });
         
         //Add layers
-        feMap.queryLayers = [];
+        feMap.SQLqueryLayers = [];
         for(var i = 0; i < userConfig.layers.length; i++) {
         
 	        var template = new esri.InfoTemplate("info window","${*}");
@@ -151,7 +153,7 @@
 	        });
 	        
 	        feMap.mapFrame.addLayer(featureLayer);
-	        if(featDef.layerInfo.queryable) {feMap.queryLayers.push(featDef);}
+	        if(featDef.layerInfo.queryable) {feMap.SQLqueryLayers.push(featDef);}
 	    }
         
         
@@ -161,8 +163,8 @@
 	        } else {
 	        	//Populate the layers list with all queryable layers
 	        	jQuery("#SQLLayerList").empty();
-	        	for(var x = 0; x < feMap.queryLayers.length; x++) {
-	        		var queryLayer = feMap.queryLayers[x];
+	        	for(var x = 0; x < feMap.SQLqueryLayers.length; x++) {
+	        		var queryLayer = feMap.SQLqueryLayers[x];
 	        		var name = queryLayer.layerInfo.title;
 	        		var id = queryLayer.id;	
 	        		jQuery("#SQLLayerList").append(new Option(name,id));
@@ -177,16 +179,51 @@
         	updateSQLqueryFields();
         });
         
+        jQuery(".SQLField").live("change",function() {
+        	//Find the layer in the QueryLayers list
+        	var layer = feMap.SQLqueryLayers[feMap.SQLqueryLayers.activeLayerIdx];
+        	
+        	//Find the selected field and retrieve its type
+        	var fieldId = this.options[this.options.selectedIndex].value;
+        	
+        	var success = false;
+        	for(var x =0; x < layer.attributes.length; x++) {
+        		var field = layer.attributes[x];
+        		if (field.name == fieldId) {
+        			success = true;
+        			
+        			//Find the field type, and the SQL Operator dropdown for this row
+        			var fieldType = field.type;
+        			var SQLOperator = this.parentNode.children[1];
+        			populateSQLOperator(fieldType, SQLOperator); 
+        			break;
+        		}
+        	}
+        	if (!success) {
+        		alert("unable to find the matching query layer");
+        		return null;
+        	}
+        	     	
+        });
+        
         function updateSQLqueryFields() {
         	//Update the dropdowns with the fields from this layer
-        	var layerId = jQuery("#SQLLayerList").val();
-        	
+        
+	        //Remove any additional query levels from previous usages
+	        jQuery('.rule').each(function (index, row) {
+	            if(index > 0) {
+	            	jQuery(this).remove();
+	            }
+	        });      
+	        
         	//Find the layer in the QueryLayers list
+        	var layerId = jQuery("#SQLLayerList").val();
         	var success = false;
-        	for(var x =0; x < feMap.queryLayers.length; x++) {
-        		var layer = feMap.queryLayers[x];
+        	for(var x =0; x < feMap.SQLqueryLayers.length; x++) {
+        		var layer = feMap.SQLqueryLayers[x];
         		if (layer.id == layerId) {
         			success = true;
+        			feMap.SQLqueryLayers.activeLayerIdx = x;
         			break;
         		}
         	}
@@ -199,22 +236,52 @@
 			}
         	
         	//Add the layer's fields to the Fields dropdown. Use the alias if specified
-        	jQuery("#SQLField").empty();
+        	jQuery(".SQLField").empty();
         	for(var y = 0; y < layer.attributes.length; y++) {
         		var field = layer.attributes[y];
-        		var alias = field.alias || field.name;
-        		jQuery("#SQLField").append(new Option(alias,field.name));
-        	}
-        	
-        	//Remove any additional query levels
-        	jQuery('.rule').each(function (index, row) {
-        	    if(index > 0) {
-        	    	jQuery(this).remove();
-        	    }
-        	});        	
+        		if(field.query) {
+	        		var alias = field.alias || field.name;
+	        		var option = new Option(alias,field.name);
+	        		jQuery(".SQLField").append(option);
+	        	}
+           	}
+        	  	
         }
               
       }
+      
+      function populateSQLOperator(fieldType, SQLOperator) {
+      	if(fieldType in inArray(["esriFieldTypeInteger","esriFieldTypeInteger","esriFieldTypeSmallInteger","esriFieldTypeDouble","esriFieldTypeSingle","esriFieldTypeOID"])) {
+      		
+      		//Add SQL operators relevant for numbers
+      		jQuery(SQLOperator).empty();
+      		jQuery(SQLOperator).append(new Option("equals","="));
+      		jQuery(SQLOperator).append(new Option("does not equal","!="));
+      		jQuery(SQLOperator).append(new Option("is less than","<")); //TODO should this be LIKE?
+      		jQuery(SQLOperator).append(new Option("is greater than",">"));
+      	} else if (fieldType == "esriFieldTypeString")  {
+      		
+      		//Add SQL operators relevant for text
+      		jQuery(SQLOperator).empty();
+      		jQuery(SQLOperator).append(new Option("equals","="));
+      		jQuery(SQLOperator).append(new Option("does not equal","!="));
+      		jQuery(SQLOperator).append(new Option("contains","contains")); //TODO should this be LIKE?
+      		jQuery(SQLOperator).append(new Option("starts with","starts with"));
+      		jQuery(SQLOperator).append(new Option("ends with","ends with"));
+      	}      	
+      }
+      
+      function inArray(a)
+      //tests whether a value is found in an array
+      {
+        var o = {};
+        for(var i=0;i<a.length;i++)
+        {
+          o[a[i]]='';
+        }
+        return o;
+      }
+      
 
 
       dojo.addOnLoad(init);
@@ -236,18 +303,9 @@
 							</div>
 							<div id="rule-group">
 								<div class="rule" id="rule">
-									<select id="SQLField">
-										<option value="reachcode">reachcode</option>
-										<option value="ftype">ftype</option>
-									</select>
-									<select id="SQLOperator">
-								
-										<option value="contains">contains</option>
-										<option value="does not contain">does not contain</option>
-										<option value="is">is</option>
-										<option value="is not">is not</option>
-									</select>
-									<input id="SQLType" type="text" />
+									<select class="SQLField"></select>
+									<select class="SQLOperator"></select>
+									<input class="SQLType" type="text" />
 									<a href="#" class="minus"></a> <a href="#" class="plus"></a>
 								</div>
 							</div>

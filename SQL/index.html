@@ -33,6 +33,22 @@
       var userConfig = {};
       userConfig.layers = [
       	{
+      	  "url":"http://services.azuron.com/arcgis/rest/services/GeoScience/Geology_RockUnit/MapServer",
+      	  "layerType":"tiled",
+      	  "id":"geology-rock-units",
+      	  "layerInfo":{
+      	    "title":"Rock units",
+      	    "description":"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque nec tellus adipiscing erat elementum tincidunt. Phasellus purus ipsum, accumsan eget sodales nec, ornare vitae libero. Mauris nisl quam, scelerisque at pellentesque id, venenatis vel velit. Integer nec lorem et libero suscipit congue.",
+      	    "visible":true,
+      	    "transparency":"0.5",
+      	    "transparencySlider":true,
+      	    "showLegend":true
+      	  },
+      	  "attributes":[
+      	    
+      	  ]
+      	},
+      	{
       		"id": "LGA",
       		"layerType": "feature",
       		"url": "http://services.azuron.com/arcgis/rest/services/ABS/BasicCommunityProfile_2011/MapServer/2",
@@ -40,7 +56,8 @@
       			"title": "Local government areas",
       			"minScale": 50000,
       			"maxScale": 100000,
-      			"queryable": true
+      			"queryable": true,
+      			"transparency": 0.5
       		},
       		"attributes": [
       		{
@@ -145,24 +162,30 @@
       	//Add layers
       	feMap.SQLqueryLayers = [];
       	for (var i = 0; i < userConfig.layers.length; i++) {
+      		var layerDef = userConfig.layers[i];
+      		var opacity = layerDef.layerInfo.transparency || 0.8;
+      		
+      		if(layerDef.layerType == "tiled") {
+      			var layer =  new esri.layers.ArcGISTiledMapServiceLayer(layerDef.url);
+      		
+      		} else if (layerDef.layerType == "feature") {
+      			var template = new esri.InfoTemplate("info window", "${*}");
+      			var outFields = [];
+      			for (var x = 0; x < layerDef.attributes.length; x++) {
+      				var outField = layerDef.attributes[x].name;
+      				outFields.push(outField);
+      			}
+	      		var layer = new esri.layers.FeatureLayer(layerDef.url, {
+	      			mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
+	      			outFields: outFields,
+	      			opacity: opacity,
+	      			infoTemplate: template
+	      		});
+	      	}
       
-      		var template = new esri.InfoTemplate("info window", "${*}");
-      		var featDef = userConfig.layers[i];
-      		var outFields = [];
-      		for (var x = 0; x < featDef.attributes.length; x++) {
-      			var outField = featDef.attributes[x].name;
-      			outFields.push(outField);
-      		}
-      
-      		var featureLayer = new esri.layers.FeatureLayer(featDef.url, {
-      			mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
-      			outFields: outFields,
-      			infoTemplate: template
-      		});
-      
-      		feMap.mapFrame.addLayer(featureLayer);
-      		if (featDef.layerInfo.queryable) {
-      			feMap.SQLqueryLayers.push(featDef);
+      		feMap.mapFrame.addLayer(layer);
+      		if (layerDef.layerInfo.queryable) {
+      			feMap.SQLqueryLayers.push(layerDef);
       		}
       	}
       
@@ -191,7 +214,12 @@
       	});
       	
       	jQuery("#btnSQLsubmit").click(function () {
-      		alert("submit query");
+      		//Build the query
+      		var SQLLayer = feMap.SQLqueryLayers[feMap.SQLqueryLayers.activeLayerIdx];
+      		
+      		var xxx = 0;
+      		
+      		
       	});
       	
       	jQuery("#SQLLayerList").change(function () {
@@ -201,57 +229,9 @@
       
       	jQuery(".SQLField").live("change", function () {
       		//If the Field dropdown changes, update the SQL Operator dropdown
-      		findFieldType(this);
-      	});
-      	
+      		SQLfindFieldType(this);
+      	});   
       	      
-      	function updateSQLqueryFields() {
-      		//Update the dropdowns with the fields from this layer
-      
-      		//Remove any additional query levels from previous usages
-      		jQuery('.rule').each(function (index, row) {
-      			if (index > 0) {
-      				jQuery(this).remove();
-      			}
-      		});
-      
-      		//Find the layer in the QueryLayers list
-      		var layerId = jQuery("#SQLLayerList").val();
-      		var success = false;
-      		for (var x = 0; x < feMap.SQLqueryLayers.length; x++) {
-      			var layer = feMap.SQLqueryLayers[x];
-      			if (layer.id == layerId) {
-      				success = true;
-      				feMap.SQLqueryLayers.activeLayerIdx = x;
-      				break;
-      			}
-      		}
-      		if (!success) {
-      			alert("unable to find the matching query layer");
-      			return null;
-      		} else if (layer.attributes == null) {
-      			alert("no attributes defined for this layer");
-      			return null;
-      		}
-      
-      		//Add the layer's fields to the Fields dropdown. Use the alias if specified
-      		jQuery(".SQLField").empty();
-      		for (var y = 0; y < layer.attributes.length; y++) {
-      			var field = layer.attributes[y];
-      			if (field.query) {
-      				var alias = field.alias || field.name;
-      				var option = new Option(alias, field.name);
-      				jQuery(".SQLField").append(option);
-      			}
-      		}
-      
-      		//Populate the SQL Operator dropdown for the first attribute
-      		var fieldType = layer.attributes[0].type;
-      		var SQLOperator = jQuery("#rule")[0].children[1];
-      		populateSQLOperator(fieldType, SQLOperator);
-      
-      	}
-      
       }
            
       function inArray(a)
@@ -264,61 +244,7 @@
       	return o;
       }
       
-      function populateSQLOperator(fieldType, SQLOperator) {
-      	//Add the appropriate values (eg less than, starts with) in the SQL Operator dropdown
-      	if (fieldType in inArray(["esriFieldTypeInteger", "esriFieldTypeInteger", "esriFieldTypeSmallInteger", "esriFieldTypeDouble", "esriFieldTypeSingle", "esriFieldTypeOID"])) {
       
-      		//Add SQL operators relevant for numbers
-      		jQuery(SQLOperator).empty();
-      		jQuery(SQLOperator).append(new Option("equals", "="));
-      		jQuery(SQLOperator).append(new Option("does not equal", "!="));
-      		jQuery(SQLOperator).append(new Option("is less than", "<")); //TODO should this be LIKE?
-      		jQuery(SQLOperator).append(new Option("is greater than", ">"));
-      	} else if (fieldType == "esriFieldTypeString") {
-      
-      		//Add SQL operators relevant for text
-      		jQuery(SQLOperator).empty();
-      		jQuery(SQLOperator).append(new Option("equals", "="));
-      		jQuery(SQLOperator).append(new Option("does not equal", "!="));
-      		jQuery(SQLOperator).append(new Option("contains", "contains")); //TODO should this be LIKE?
-      		jQuery(SQLOperator).append(new Option("starts with", "starts with"));
-      		jQuery(SQLOperator).append(new Option("ends with", "ends with"));
-      	} else {
-      		alert("layer type not supported");
-      	}
-      }      	
-      
-      function findFieldType(row) {
-		//Find the layer in the QueryLayers list
-		var layer = feMap.SQLqueryLayers[feMap.SQLqueryLayers.activeLayerIdx];
-		
-		//Find the selected field and retrieve its type
-		var fieldId = row.options[row.options.selectedIndex].value;
-		
-		//Find the relevant SQL Operator for this row
-		var SQLOperator = row.parentNode.children[1];
-		
-		var success = false;
-		for (var x = 0; x < layer.attributes.length; x++) {
-			var field = layer.attributes[x];
-			if (field.name == fieldId) {
-				success = true;
-		
-				//Find the field type, and the SQL Operator dropdown for this row
-				var fieldType = field.type;
-				populateSQLOperator(fieldType, SQLOperator);
-				break;
-			}
-		}
-		if (!success) {
-			alert("unable to find the matching query layer");
-			return null;
-		}
-		
-	}
-            
-
-
       dojo.addOnLoad(init);
     </script> 
   </head> 

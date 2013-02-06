@@ -62,6 +62,11 @@ weszt@hanamidesign.com
     padding-bottom: 10px;
 }
 
+#wrapper > button.loading {
+	font-style: italic;
+	font-weight: bold;
+}
+
 #rule-group .plus {background-position:-34px -37px;}
 #rule-group .minus {background-position:-4px -37px;}
 #rule-group .minus.disabled {background-position:-4px -3px;}

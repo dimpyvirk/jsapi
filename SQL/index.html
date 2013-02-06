@@ -28,10 +28,40 @@
       dojo.require("esri.layers.FeatureLayer");
       dojo.require("dijit.form.Button");
       dojo.require("dijit.Dialog");
+      dojo.require("esri.tasks.query");
 
       var feMap = {};
       var userConfig = {};
       userConfig.layers = [
+      {
+        "url":"http://ga.gov.au/gis/rest/services/topography/Topo_WM/MapServer/72",
+        "layerType":"feature",
+        "id":"waterbodies",
+        "layerInfo":{
+          "title":"Waterbodies",
+          "description":"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque nec tellus adipiscing erat elementum tincidunt. Phasellus purus ipsum, accumsan eget sodales nec, ornare vitae libero. Mauris nisl quam, scelerisque at pellentesque id, venenatis vel velit. Integer nec lorem et libero suscipit congue.",
+          "visible":true,
+          "transparency":"0.5",
+          "transparencySlider":true,
+          "showLegend":true,
+          "SQLquery": true
+        },
+        "attributes":       	  
+        [
+        {
+           "name": "NAME",
+           "type": "esriFieldTypeString",
+           "alias": "NAME",
+           "query": true
+          },
+          {
+           "name": "PERENNIAL",
+           "type": "esriFieldTypeString",
+           "alias": "Perenniality",
+           "query": true
+          }
+        ]
+      },
       	{
       	  "url":"http://services.azuron.com/arcgis/rest/services/GeoScience/Geology_RockUnit/MapServer",
       	  "layerType":"tiled",
@@ -82,7 +112,7 @@
       			"title": "Local government areas",
       			"minScale": 50000,
       			"maxScale": 100000,
-      			"SQLquery": true,
+      			"SQLquery": false,
       			"transparency": 0.5
       		},
       		"attributes": [
@@ -175,7 +205,7 @@
       		"xMax": 17500000,
       		"yMax": -3000000,
       		"spatialReference": {
-      			"wkid": 102113
+      			"wkid": 102100
       		}
       	});
       
@@ -186,7 +216,8 @@
       	});
       
       	//Add layers
-      	feMap.SQLqueryLayers = [];
+      	feMap.SQLquery = {};
+      	feMap.SQLquery.layers = [];
       	for (var i = 0; i < userConfig.layers.length; i++) {
       		var layerDef = userConfig.layers[i];
       		var opacity = layerDef.layerInfo.transparency || 0.8;
@@ -196,14 +227,14 @@
       		
       		} else if (layerDef.layerType == "feature") {
       			var template = new esri.InfoTemplate("info window", "${*}");
-      			var outFields = [];
+      			feMap.SQLquery.outFields = [];
       			for (var x = 0; x < layerDef.attributes.length; x++) {
       				var outField = layerDef.attributes[x].name;
-      				outFields.push(outField);
+      				feMap.SQLquery.outFields.push(outField);
       			}
 	      		var layer = new esri.layers.FeatureLayer(layerDef.url, {
 	      			mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
-	      			outFields: outFields,
+	      			outFields: feMap.SQLquery.outFields,
 	      			opacity: opacity,
 	      			infoTemplate: template
 	      		});
@@ -211,7 +242,7 @@
       
       		feMap.mapFrame.addLayer(layer);
       		if (layerDef.layerInfo.SQLquery) {
-      			feMap.SQLqueryLayers.push(layerDef);
+      			feMap.SQLquery.layers.push(layerDef);
       		}
       	}
       
@@ -223,8 +254,8 @@
       		} else {
       			//Populate the layers list with all SQLquery layers
       			jQuery("#SQLLayerList").empty();
-      			for (var x = 0; x < feMap.SQLqueryLayers.length; x++) {
-      				var queryLayer = feMap.SQLqueryLayers[x];
+      			for (var x = 0; x < feMap.SQLquery.layers.length; x++) {
+      				var queryLayer = feMap.SQLquery.layers[x];
       				var name = queryLayer.layerInfo.title;
       				var id = queryLayer.id;
       				jQuery("#SQLLayerList").append(new Option(name, id));
@@ -240,8 +271,9 @@
       	});
       	
       	jQuery("#btnSQLsubmit").click(function () {
-      		//Build the query
-      		var SQLlayer = feMap.SQLqueryLayers[feMap.SQLqueryLayers.activeLayerIdx];
+      		
+      		//Find the layer properties
+      		var SQLlayer = feMap.SQLquery.layers[feMap.SQLquery.activeLayerIdx];
       		
       		//Determine the URL for the query. This will vary between feature, dynamic and tiled layers
       		var url = SQLlayer.url;
@@ -250,7 +282,49 @@
       			url += "/" + SQLlayer.layerInfo.SQLquery.layerId;
       		}
       		
-      		console.log(url);      		
+      		//Build the query and queryTask
+      		feMap.SQLquery.queryTask = new esri.tasks.QueryTask(url);
+      		feMap.SQLquery.query = new esri.tasks.Query();
+      		feMap.SQLquery.query.returnGeometry = true;
+      		feMap.SQLquery.query.outFields = feMap.SQLquery.outFields;
+      		
+      		//Build the where clause from the panel values
+      		var whereClause = "";      		
+      		jQuery('.rule').each(function (index, row) {
+      			var field = row.children[0].value;
+      			var operator = row.children[1].value;
+      			var value = row.children[2].value;
+      			var isNumeric = jQuery(row.children[2]).hasClass("feNumeric");
+      			var thisClause;
+      			if(isNumeric) {
+	      			thisClause = '"' + field + '"' + operator + value;
+	      		} else {
+	      			switch (operator) {
+	      				case "contains":
+			      			thisClause = '"' + field + '" like ' + "'%" + value + "%'";
+			      			break;
+			      		case "starts with":
+			      			thisClause = '"' + field + '" like ' + "'" + value + "%'";
+			      			break;
+			      		case "ends with":
+			      			thisClause = '"' + field + '" like ' + "'%" + value + "'";
+			      			break;
+			      		default:
+			      			thisClause = '"' + field + '"' + operator + "'" + value + "'";
+	      			}
+	      		}
+	      		
+	      		if(whereClause.length < 1) {
+	      			whereClause = thisClause;
+	      		} else {
+	      			whereClause += ' AND ' + thisClause;
+	      		}
+      		});
+      		
+      		feMap.SQLquery.query.where = whereClause;
+	  		feMap.SQLquery.queryTask.execute(feMap.SQLquery.query, SQLshowResults, SQLerror);
+	  		jQuery(this).addClass("loading");
+      		console.log("executing query");      		
       		
       	});
       	

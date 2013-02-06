@@ -49,11 +49,11 @@ function updateSQLqueryFields() {
 	//Find the layer in the QueryLayers list
 	var layerId = jQuery("#SQLLayerList").val();
 	var success = false;
-	for (var x = 0; x < feMap.SQLqueryLayers.length; x++) {
-		var layer = feMap.SQLqueryLayers[x];
+	for (var x = 0; x < feMap.SQLquery.layers.length; x++) {
+		var layer = feMap.SQLquery.layers[x];
 		if (layer.id == layerId) {
 			success = true;
-			feMap.SQLqueryLayers.activeLayerIdx = x;
+			feMap.SQLquery.activeLayerIdx = x;
 			break;
 		}
 	}
@@ -65,10 +65,13 @@ function updateSQLqueryFields() {
 		return null;
 	}
 
-	//Add the layer's fields to the Fields dropdown. Use the alias if specified
+	//Add the layer's fields to the Fields dropdown (use the alias if specified) and
+	//update the outFields array for the query
 	jQuery(".SQLField").empty();
+	feMap.SQLquery.outFields = [];
 	for (var y = 0; y < layer.attributes.length; y++) {
 		var field = layer.attributes[y];
+		feMap.SQLquery.outFields.push(field.name);
 		if (field.query) {
 			var alias = field.alias || field.name;
 			var option = new Option(alias, field.name);
@@ -104,11 +107,12 @@ function populateSQLOperator(fieldType, SQLOperator, SQLText) {
 		jQuery(SQLText).addClass("feNumeric");
 		
 	} else if (fieldType == "esriFieldTypeString") {
-		
+	
+	
 		//Add SQL operators relevant for text
 		jQuery(SQLOperator).empty();
 		jQuery(SQLOperator).append(new Option("is", "="));
-		jQuery(SQLOperator).append(new Option("is not", "!="));
+		jQuery(SQLOperator).append(new Option("is not", "<>"));
 		jQuery(SQLOperator).append(new Option("contains", "contains")); //TODO should this be LIKE?
 		jQuery(SQLOperator).append(new Option("starts with", "starts with"));
 		jQuery(SQLOperator).append(new Option("ends with", "ends with"));
@@ -120,7 +124,7 @@ function populateSQLOperator(fieldType, SQLOperator, SQLText) {
 
 function SQLfindFieldType(row) {
 	//Find the layer in the QueryLayers list
-	var layer = feMap.SQLqueryLayers[feMap.SQLqueryLayers.activeLayerIdx];
+	var layer = feMap.SQLquery.layers[feMap.SQLquery.activeLayerIdx];
 	
 	//Find the selected field
 	var fieldId = row.options[row.options.selectedIndex].value;
@@ -147,3 +151,13 @@ function SQLfindFieldType(row) {
 	}
 }
 
+function SQLshowResults(results) {
+	jQuery("#btnSQLsubmit").removeClass("loading");
+	console.log(results.features.length + " features found");
+}
+
+function SQLerror(error) {
+	jQuery("#btnSQLsubmit").removeClass("loading");
+	alert(error);
+
+}

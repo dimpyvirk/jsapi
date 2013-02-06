@@ -160,7 +160,8 @@ function SQLshowResults(results) {
 	var attrs = feMap.SQLquery.layers[feMap.SQLquery.activeLayerIdx].attributes;
 	for (var i = 0; i < attrs.length; i++) {
 		var attr = attrs[i];
-		html += "<td>" + attr.name + "</td>"
+		var title = attr.alias || attr.name;
+		html += "<td>" + title + "</td>"
 	}
 	html += "</thead>";
 	
@@ -181,7 +182,8 @@ function SQLshowResults(results) {
 	jQuery("#SQLResultsTable").html(html);
 	jQuery('#tblSQLResults').dataTable({
 		"aaSorting": [ ],
-		"bLengthChange": false      	
+		"bLengthChange": true,
+		"aLengthMenu": [10, 25, 50, 100],      	
 	});
 	jQuery("#SQLResults").show();
 }

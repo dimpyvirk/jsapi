@@ -9,18 +9,20 @@
     <title>Select By Attributes</title> 
     <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/dojo/dijit/themes/claro/claro.css">
     <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
+    <link href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css" rel="stylesheet" type="text/css" >
     <link rel="stylesheet" href="SQLquery.css" type="text/css" media="screen, projection" />
     <style>
       html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
     </style>
     <script type="text/javascript">djConfig = { parseOnLoad:true };</script> 
-    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.1.min.js"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.14/jquery-ui.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js" type="text/javascript" charset="utf8" ></script>
     <script language="javascript" src="SQLquery.js"></script> 
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
     <script>
-    	$(function() {
-    		$( "#wrapper" ).draggable();
+    	jQuery(function() {
+    		jQuery(".draggable").draggable();
     	});
     	</script>
     <script type="text/javascript"> 
@@ -268,6 +270,7 @@
       	
       	jQuery("#btnSQLcancel").click(function () {
       		jQuery("#SQLquery").hide();
+      		jQuery("#SQLResults").hide();
       	});
       	
       	jQuery("#btnSQLsubmit").click(function () {
@@ -324,6 +327,7 @@
       		feMap.SQLquery.query.where = whereClause;
 	  		feMap.SQLquery.queryTask.execute(feMap.SQLquery.query, SQLshowResults, SQLerror);
 	  		jQuery(this).addClass("loading");
+	  		jQuery("#SQLResults").hide();
       		console.log("executing query");      		
       		
       	});
@@ -380,7 +384,7 @@
 				<button id="btnSQLquery" type="button">Select by Attributes</button>
 				
 				<div id="SQLquery" class="draggable">
-					<div id="wrapper">
+					<div id="wrapper" class="wrapper">
 						<div id="rule-header"> Select By Attributes </div>
 						<form>
 							<div id="SQLLayers">
@@ -403,6 +407,13 @@
 					</div><!--wrapper-->
 				</div> <!--SQLquery-->
 	
+				<div id="SQLResults" class="draggable">
+					<div class="wrapper">
+						<div id="SQLResultsTable">
+							<!--contents filled in by the query-->
+						</div>
+					</div>
+				</div>
 	
 			</div> <!--map-->
 		</div> <!--page-->

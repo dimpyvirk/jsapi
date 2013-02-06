@@ -153,11 +153,42 @@ function SQLfindFieldType(row) {
 
 function SQLshowResults(results) {
 	jQuery("#btnSQLsubmit").removeClass("loading");
-	console.log(results.features.length + " features found");
+	
+	//Build a table for the results
+	var html = '<table id="tblSQLResults" class="table table-striped table-bordered table-hover table-condensed sortable"">';
+	html += "<thead class='noSelect'>";
+	var attrs = feMap.SQLquery.layers[feMap.SQLquery.activeLayerIdx].attributes;
+	for (var i = 0; i < attrs.length; i++) {
+		var attr = attrs[i];
+		html += "<td>" + attr.name + "</td>"
+	}
+	html += "</thead>";
+	
+	//Populate the table
+	for (var j=0; j < results.features.length; j++) {
+		html += "<tr>"
+		var feature = results.features[j];
+		for (var i = 0; i < attrs.length; i++) {
+			var attr = attrs[i];
+			html += "<td>" + feature.attributes[attr.name] + "</td>"
+		}
+		html += "</tr>";
+		
+	}
+	
+	//Close off the table and append the HTML to the results panel
+	html += '</table>';
+	jQuery("#SQLResultsTable").html(html);
+	jQuery('#tblSQLResults').dataTable({
+		"aaSorting": [ ],
+		"bLengthChange": false      	
+	});
+	jQuery("#SQLResults").show();
 }
 
 function SQLerror(error) {
 	jQuery("#btnSQLsubmit").removeClass("loading");
-	alert(error);
+	jQuery("#SQLResults").html(error.message);
+	jQuery("#SQLResults").show();
 
 }

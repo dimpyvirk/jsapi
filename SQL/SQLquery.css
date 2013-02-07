@@ -115,3 +115,7 @@ weszt@hanamidesign.com
 .highlight {
 	background-color: yellow;
 }
+
+.hidden {
+	display: none;
+}

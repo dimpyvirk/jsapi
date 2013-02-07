@@ -78,6 +78,10 @@ function updateSQLqueryFields() {
 			jQuery(".SQLField").append(option);
 		}
 	}
+	
+	//Add the ObjectID field to the outFields. Assume it's called "OBJECTID" unless otherwise specified
+	var oidField = layer.layerInfo.allowSelect.oidField || "OBJECTID";
+	feMap.SQLquery.outFields.push(oidField);
 
 	//Populate the SQL Operator and SQL Text dropdowns for the first attribute
 	var fieldType = layer.attributes[0].type;
@@ -107,7 +111,6 @@ function populateSQLOperator(fieldType, SQLOperator, SQLText) {
 		jQuery(SQLText).addClass("feNumeric");
 		
 	} else if (fieldType == "esriFieldTypeString") {
-	
 	
 		//Add SQL operators relevant for text
 		jQuery(SQLOperator).empty();
@@ -154,10 +157,13 @@ function SQLfindFieldType(row) {
 function selectShowResults(results) {
 	jQuery("#btnSQLsubmit").removeClass("loading");
 	
+	//Add the results to the map as a graphics layer
+	//TODO: do this
+	
 	//Build a table for the results
 	var html = '<table id="tblSearchResults" class="table table-striped table-bordered table-hover table-condensed sortable"">';
 	html += "<thead class='noSelect'>";
-	html += "<td class='hidden'>hidden ID</td>"
+	html += "<td class='hiddenXXX'>hidden ID</td>"
 	var attrs = feMap.SQLquery.layers[feMap.SQLquery.activeLayerIdx].attributes;
 	for (var i = 0; i < attrs.length; i++) {
 		var attr = attrs[i];
@@ -169,7 +175,11 @@ function selectShowResults(results) {
 	//Populate the table
 	for (var j=0; j < results.features.length; j++) {
 		var feature = results.features[j];
-		html += "<td class='hidden'> (ID) </td>";
+		
+		//Add the ObjectID field, so we can highlight and zoom to this feature
+		html += "<td class='hiddenXXX'>" + results.features[j].attributes[feMap.SQLquery.oidField] + "</td>";
+		
+		//Add the remaining attributes
 		for (var i = 0; i < attrs.length; i++) {
 			var attr = attrs[i];
 			var value = feature.attributes[attr.name];
@@ -184,19 +194,28 @@ function selectShowResults(results) {
 	jQuery("#SearchResultsTable").html(html);
 	
 	//Allow table sorting.
-	jQuery('#tblSearchResults').dataTable({
+	var oTable = jQuery('#tblSearchResults').dataTable({
 		"aaSorting": [ ],
 		"bLengthChange": false,
 		"aLengthMenu": [10, 25],
 		"bFilter": false      	
 	});
 	
-	jQuery("#tblSearchResults tr").not(':first').hover(
+	$('td', oTable.fnGetNodes()).hover(
 	  function () {
-	    jQuery(this).css("background","yellow");
+	  	//Highlight this row
+	  	//TODO: replace this with a class selector
+	  	var row = this.parentNode;
+	    jQuery(row).css("background","yellow");
+	    
+	    //Highlight the feature's graphic on the map
+	    var oid = row.children[0].textContent;
+	    //TODO: highlight this feature's graphic using its OID
+	    
 	  }, 
 	  function () {
-	    jQuery(this).css("background","");
+	  	//TODO: replace this with a class selector
+	    jQuery(this.parentNode).css("background","");
 	  }
 	);
 	

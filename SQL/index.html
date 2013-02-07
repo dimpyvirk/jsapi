@@ -46,11 +46,15 @@
           "transparency":"0.5",
           "transparencySlider":true,
           "showLegend":true,
-          "SQLquery": true
+          "allowSelect": {
+          	"byAttribute": true,
+          	"byLocation": true,
+          	"oidField": "OBJECTID"
+          }
         },
         "attributes":       	  
         [
-        {
+         {
            "name": "NAME",
            "type": "esriFieldTypeString",
            "alias": "Name",          
@@ -75,7 +79,9 @@
       	    "transparency":"0.5",
       	    "transparencySlider":true,
       	    "showLegend":true,
-      	    "SQLquery": {
+      	    "allowSelect": {
+      	    	"byLocation": false,
+      	    	"byAttribute": true,
       	    	"layerId": 1
       	    }
       	  },
@@ -114,7 +120,9 @@
       			"title": "Local government areas",
       			"minScale": 50000,
       			"maxScale": 100000,
-      			"SQLquery": false,
+      			"allowSelect": {
+      				"byLocation": true
+      			},
       			"transparency": 0.5
       		},
       		"attributes": [
@@ -143,9 +151,8 @@
       	    "title":"World Heritage areas",
       	    "description":"Areas listed by UNESCO as World Heritage sites in New South Wales.",
       	    "visible":true,
-      	    "showLegend":true,
-      	    "SQLquery": true
-      	  },
+      	    "showLegend":true
+       	  },
       	  "attributes":[
       	    {
       	      "name":"WHA_NAME",
@@ -243,7 +250,7 @@
 	      	}
       
       		feMap.mapFrame.addLayer(layer);
-      		if (layerDef.layerInfo.SQLquery) {
+      		if (layerDef.layerInfo.allowSelect && layerDef.layerInfo.allowSelect.byAttribute) {
       			feMap.SQLquery.layers.push(layerDef);
       		}
       	}
@@ -280,10 +287,14 @@
       		
       		//Determine the URL for the query. This will vary between feature, dynamic and tiled layers
       		var url = SQLlayer.url;
-      		if(SQLlayer.layerInfo.SQLquery.layerId) {
+      		if(SQLlayer.layerInfo.allowSelect.layerId) {
       			if(url.substr(-1) == '/') {url.substr(0, url.length - 1);}
-      			url += "/" + SQLlayer.layerInfo.SQLquery.layerId;
+      			url += "/" + SQLlayer.layerInfo.allowSelect.layerId;
       		}
+      		
+      		//Append this layer's ObjectID field to the feMap.SQLquery object. Assume that it's called "OBJECTID"
+      		//unless otherwise specified in the userConfig
+      		feMap.SQLquery.oidField = SQLlayer.layerInfo.allowSelect.oidField || "OBJECTID";
       		
       		//Build the query and queryTask
       		feMap.SQLquery.queryTask = new esri.tasks.QueryTask(url);

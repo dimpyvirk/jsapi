@@ -270,7 +270,7 @@
       	
       	jQuery("#btnSQLcancel").click(function () {
       		jQuery("#SQLquery").hide();
-      		jQuery("#SQLResults").hide();
+      		jQuery("#SearchResults").hide();
       	});
       	
       	jQuery("#btnSQLsubmit").click(function () {
@@ -325,9 +325,9 @@
       		});
       		
       		feMap.SQLquery.query.where = whereClause;
-	  		feMap.SQLquery.queryTask.execute(feMap.SQLquery.query, SQLshowResults, SQLerror);
+	  		feMap.SQLquery.queryTask.execute(feMap.SQLquery.query, selectShowResults, SQLerror);
 	  		jQuery(this).addClass("loading");
-	  		jQuery("#SQLResults").hide();
+	  		jQuery("#SearchResults").hide();
       		console.log("executing query");      		
       		
       	});
@@ -407,9 +407,9 @@
 					</div><!--wrapper-->
 				</div> <!--SQLquery-->
 	
-				<div id="SQLResults" class="draggable">
+				<div id="SearchResults" class="draggable">
 					<div class="wrapper">
-						<div id="SQLResultsTable">
+						<div id="SearchResultsTable">
 							<!--contents filled in by the query-->
 						</div>
 					</div>

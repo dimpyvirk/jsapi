@@ -32,7 +32,7 @@ weszt@hanamidesign.com
 	padding-bottom: 25px;
 }
 
-.wrapper form, #SQLResultsTable {
+.wrapper form, #SearchResultsTable {
     padding-top: ;
 }
 
@@ -85,13 +85,13 @@ weszt@hanamidesign.com
 
 .rule a {text-decoration:none;}
 
-#SQLResults {
+#SearchResults {
 	position: absolute;
 	z-index: 1001;
 	display: none;
 }
 
-#SQLResultsTable {
+#SearchResultsTable {
     font-size: 14px;
     max-height: 650px;
     min-height: 150px;
@@ -100,14 +100,18 @@ weszt@hanamidesign.com
     margin: 10px;
 }
 
-#SQLResultsTable thead {
+#SearchResultsTable thead {
     font-weight: bold;
 }
 
-#SQLResultsTable td {
-	border: 1px solid #333;
+#SearchResultsTable td {
+	min-height: 50px;
 }
 
-#SQLResultsTable thead td {
+#SearchResultsTable thead td {
     min-width: 150px;
+}
+
+.highlight {
+	background-color: yellow;
 }

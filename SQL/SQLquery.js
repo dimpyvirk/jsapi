@@ -151,12 +151,13 @@ function SQLfindFieldType(row) {
 	}
 }
 
-function SQLshowResults(results) {
+function selectShowResults(results) {
 	jQuery("#btnSQLsubmit").removeClass("loading");
 	
 	//Build a table for the results
-	var html = '<table id="tblSQLResults" class="table table-striped table-bordered table-hover table-condensed sortable"">';
+	var html = '<table id="tblSearchResults" class="table table-striped table-bordered table-hover table-condensed sortable"">';
 	html += "<thead class='noSelect'>";
+	html += "<td class='hidden'>hidden ID</td>"
 	var attrs = feMap.SQLquery.layers[feMap.SQLquery.activeLayerIdx].attributes;
 	for (var i = 0; i < attrs.length; i++) {
 		var attr = attrs[i];
@@ -167,30 +168,44 @@ function SQLshowResults(results) {
 	
 	//Populate the table
 	for (var j=0; j < results.features.length; j++) {
-		html += "<tr>"
 		var feature = results.features[j];
+		html += "<td class='hidden'> (ID) </td>";
 		for (var i = 0; i < attrs.length; i++) {
 			var attr = attrs[i];
-			html += "<td>" + feature.attributes[attr.name] + "</td>"
+			var value = feature.attributes[attr.name];
+			if(value == null || value == "" || value == " ") {value = "(null)";}
+			html += "<td>" + value + "</td>";
 		}
-		html += "</tr>";
-		
+		html += "</tr>";		
 	}
 	
 	//Close off the table and append the HTML to the results panel
 	html += '</table>';
-	jQuery("#SQLResultsTable").html(html);
-	jQuery('#tblSQLResults').dataTable({
+	jQuery("#SearchResultsTable").html(html);
+	
+	//Allow table sorting.
+	jQuery('#tblSearchResults').dataTable({
 		"aaSorting": [ ],
-		"bLengthChange": true,
-		"aLengthMenu": [10, 25, 50, 100],      	
+		"bLengthChange": false,
+		"aLengthMenu": [10, 25],
+		"bFilter": false      	
 	});
-	jQuery("#SQLResults").show();
+	
+	jQuery("#tblSearchResults tr").not(':first').hover(
+	  function () {
+	    jQuery(this).css("background","yellow");
+	  }, 
+	  function () {
+	    jQuery(this).css("background","");
+	  }
+	);
+	
+	jQuery("#SearchResults").show();
 }
 
 function SQLerror(error) {
 	jQuery("#btnSQLsubmit").removeClass("loading");
-	jQuery("#SQLResults").html(error.message);
-	jQuery("#SQLResults").show();
+	jQuery("#SearchResults").html(error.message);
+	jQuery("#SearchResults").show();
 
 }

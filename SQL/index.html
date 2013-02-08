@@ -31,6 +31,7 @@
       dojo.require("dijit.form.Button");
       dojo.require("dijit.Dialog");
       dojo.require("esri.tasks.query");
+      dojo.require("esri.layers.graphics");
 
       var feMap = {};
       var userConfig = {};
@@ -242,6 +243,7 @@
       				feMap.SQLquery.outFields.push(outField);
       			}
 	      		var layer = new esri.layers.FeatureLayer(layerDef.url, {
+	      			id: layerDef.id,
 	      			mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
 	      			outFields: feMap.SQLquery.outFields,
 	      			opacity: opacity,
@@ -251,6 +253,8 @@
       
       		feMap.mapFrame.addLayer(layer);
       		if (layerDef.layerInfo.allowSelect && layerDef.layerInfo.allowSelect.byAttribute) {
+      			feMap.SQLquery.graphicsLayer =  new esri.layers.GraphicsLayer({id:layerDef.id + "_query"});
+      			feMap.mapFrame.addLayer(feMap.SQLquery.graphicsLayer);
       			feMap.SQLquery.layers.push(layerDef);
       		}
       	}

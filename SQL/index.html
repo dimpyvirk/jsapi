@@ -254,9 +254,9 @@
 	      	}
       
       		feMap.mapFrame.addLayer(layer);
+      		
+      		//If this layer supports SQL query, add it to the list of SQL query layers
       		if (layerDef.layerInfo.allowSelect && layerDef.layerInfo.allowSelect.byAttribute) {
-      			feMap.SQLquery.graphicsLayer =  new esri.layers.GraphicsLayer({id:layerDef.id + "_query"});
-      			feMap.mapFrame.addLayer(feMap.SQLquery.graphicsLayer);
       			feMap.SQLquery.layers.push(layerDef);
       		}
       	}

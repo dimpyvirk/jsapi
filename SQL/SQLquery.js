@@ -158,7 +158,21 @@ function selectShowResults(results) {
 	jQuery("#btnSQLsubmit").removeClass("loading");
 	
 	//Add the results to the map as a graphics layer
-	//TODO: do this
+	var layerId = feMap.SQLquery.layers[feMap.SQLquery.activeLayerIdx].id;
+	var queryLayer = feMap.mapFrame.getLayer(layerId + "_query");
+	if(!queryLayer) {
+		alert("There was a problem finding the graphics layer for this query");
+		return null;
+	}
+	
+	//Build up the graphics array
+	queryLayer.clear();
+	var graphics = [];
+	var symbol = new esri.symbol.SimpleFillSymbol();
+    symbol.setColor(new dojo.Color([150,150,150,0.5])); //TODO: read this from the userConfig
+    dojo.forEach(results.features, function(feature) {
+		queryLayer.add(feature.setSymbol(symbol));
+    });
 	
 	//Build a table for the results
 	var html = '<table id="tblSearchResults" class="table table-striped table-bordered table-hover table-condensed sortable"">';

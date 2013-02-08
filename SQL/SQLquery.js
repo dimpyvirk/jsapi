@@ -157,37 +157,8 @@ function SQLfindFieldType(row) {
 function selectShowResults(results) {
 	jQuery("#btnSQLsubmit").removeClass("loading");
 	
-	//Add the results to the map as a feature layer
+	//Add the results to the map as a graphics layer
 	var layerId = feMap.SQLquery.layers[feMap.SQLquery.activeLayerIdx].id;
-	var sfs = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID,
-	 new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_DASHDOT,
-	 new dojo.Color([255,0,0]), 2),new dojo.Color([255,255,0,0.25]));
-	var layerDefinition = {
-	  "geometryType": results.geometryType,
-	  "fields": results.fields,
-	  "objectIdField": "OBJECTID",
-	  "drawingInfo": {
-		  "renderer": {
-			  "type": "simple",
-			  "symbol": sfs
-		  }
-	  }
-	}
-	var featureCollection = {
-	  layerDefinition: layerDefinition,
-	  featureSet: results.features
-	};
-	
-	var infoTemplate = new esri.InfoTemplate();
-	var featureLayer = new esri.layers.FeatureLayer(featureCollection, {
-	  mode: esri.layers.FeatureLayer.MODE_SNAPSHOT,
-	  id: "test layer",
-	  infoTemplate: infoTemplate
-	});
-	
-	console.log("added layer");
-	
-	feMap.mapFrame.addLayer(featureLayer); 
 		
 	//Build a table for the results
 	var html = '<table id="tblSearchResults" class="table table-striped table-bordered table-hover table-condensed sortable"">';

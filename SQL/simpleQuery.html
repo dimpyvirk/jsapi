@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
     <script>var dojoConfig = { parseOnLoad: true };</script>
     <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
+    <script src="QueryLayer.js"></script>
     <style>
 		html, body { 
 			height: 100%; width: 100%;
@@ -20,19 +21,49 @@
     	dojo.require("dijit.layout.ContentPane");
     	dojo.require("dijit.form.Button");
     	dojo.require("esri.map");
+    	dojo.require("esri.tasks.query");
+    	dojo.require("esri.layers.FeatureLayer");
     	
     	var map;
     	
     	function init() {
     	
     		map = new esri.Map("map", {
-    		  center: [-90.733, 30.541],
-    		  basemap: "streets",
-    		  zoom: 8
+    		  center: [149.435, -35.101],
+    		  basemap: "gray",
+    		  zoom: 12
     		});
     		
+    		dojo.connect(map, "onLoad", function() {
+	    		var query = new esri.tasks.Query();
+	    		query.returnGeometry = true;
+	    		query.outFields = ["NAME","PERENNIAL","OBJECTID"];
+	    		query.where = "NAME like 'A%'";
+	    		
+	    		var queryTask = new esri.tasks.QueryTask("http://ga.gov.au/gis/rest/services/topography/Topo_WM/MapServer/72");
+	    		queryTask.execute(query, selectShowResults, SQLerror);
+	    	});
+	    	
+	    	function selectShowResults(results) {
+	    	
+	    		var layer = new modules.QueryLayer(results.features, {
+	    			map: map,
+	    			id: "query layer"
+	    		});
+	    		
+	    		map.addLayer(layer);
+	    		console.log("Found " + results.features.length + " features");
+	    		
+	    		
+	    	}
+	    	
+	    	function SQLerror(error) {
+	    		var yyy = 0;     	
+	    	}
+	    	
+    		
      	}
-    	    	
+         	    	
     	dojo.ready(init);
     </script>
     

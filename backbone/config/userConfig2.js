@@ -204,7 +204,7 @@ testConfig2 = {
       "id":"BingRoads",
       "title":"Bing - Road",
       "bmType":"bing",
-      "options": {
+      "params": {
   	      "mapStyle":"ROAD",
   	      "thumbnail":"http://fullextent.com.au/images/thumbnails/BingRoad_thumb.png",
   	      "bingKey":"AqsBhjBtCIFp8uW5KMQ6j_heuOU9ORNS1ZdiGseSv0P44o2f13_RRijRh1HlFbTm"

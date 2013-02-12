@@ -65,21 +65,9 @@ fe.MapModel = Backbone.Model.extend({
 	    var popup = this.createPopup();
         
         //Build the map object
-        var sliderStyle = args.sliderStyle || "default";
-        var isZoomSlider = true;
-        if (args.isZoomSlider != undefined) {
-        	isZoomSlider = args.isZoomSlider;
-        	if(!isZoomSlider) {
-        		//Needed due to a bug at v3.3 whereby the slider is still shown unless the large option is chosen
-        		sliderStyle = "large";
-        	} 
-        }
-        
         this.map = new esri.Map(args.div, {
         	extent: startExtent,
         	popup: popup,
-        	sliderStyle: sliderStyle,
-        	isZoomSlider: isZoomSlider,
         	wrapAround180: true
         });
         
@@ -90,42 +78,8 @@ fe.MapModel = Backbone.Model.extend({
         //work in progress:
         this.loadBasemaps(userConfig.basemaps);
         
-        //Set listeners for various map events
-        if(args.feZoomSlider) {
-        	//Override the default zoom slider with a custom slider
-	        dojo.connect(this.map, 'onLoad', dojo.hitch(this, this.createCustomSlider, args.feZoomSlider));
-	    }
         dojo.connect(this.map, 'onExtentChange', dojo.hitch(this, this.extentChanged));
         
-    },
-    createCustomSlider: function (zoomSliderDiv) {
-    	jQuery('#' + zoomSliderDiv).html('<div id="zoomSliderPlus' + this.cid + '" title="Zoom in"></div><div id="zoomSliderCustom" title="Drag to zoom"></div><div id="zoomSliderMinus" title="Zoom out"></div>');
-    	this.map.customMapSlider = jQuery("#zoomSliderCustom").slider({
-    		min: 0,
-    		max: this.map._params.lods.length - 1,
-    		value: this.map.getLevel(),
-    		orientation: "vertical",
-    		range: "min",
-    		change: function(event, ui) {
-    			if (this.map.getLevel() !== ui.value) {
-    				this.map.setLevel(ui.value);
-    			}
-    		}
-    	});
-    
-    	/*------------------------------------*/
-    	// ZOOM SLIDER BUTTONS
-    	/*------------------------------------*/
-    	jQuery(document).on('click','#zoomSliderMinus',function(event) {
-    		var currentValue = this.map.customMapSlider.slider("option", "value");
-    		this.map.customMapSlider.slider("option", "value", currentValue - 1);
-        });
-    	jQuery(document).on('click','#zoomSliderPlus',function(event) {
-    		var currentValue = this.map.customMapSlider.slider("option", "value");
-    		this.map.customMapSlider.slider("option", "value", currentValue + 1);
-        });
-    	// SHOW ZOOM SLIDER
-    	jQuery('#zoomSliderDiv').show();
     },
     createPopup: function() {
 	    var mapPopup = new esri.dijit.Popup({
@@ -148,7 +102,7 @@ fe.MapModel = Backbone.Model.extend({
             ymin: this.map.extent.ymin.toFixed(0),
             ymax: this.map.extent.ymax.toFixed(0)
         };
-        this.set(extent);
+        //this.set(extent);
         
     },
     loadBasemaps: function (basemaps) {

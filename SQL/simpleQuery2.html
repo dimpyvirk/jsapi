@@ -4,12 +4,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
-    <title>Print Task</title>
+    <title>Feature layer from featureCollection</title>
     <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/dojo/dijit/themes/nihilo/nihilo.css">
     <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
     <script>var dojoConfig = { parseOnLoad: true };</script>
     <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
-    <script src="QueryLayer.js"></script>
     <style>
 		html, body { 
 			height: 100%; width: 100%;
@@ -19,7 +18,6 @@
     <script>
     	dojo.require("dijit.layout.BorderContainer");
     	dojo.require("dijit.layout.ContentPane");
-    	dojo.require("dijit.form.Button");
     	dojo.require("esri.map");
     	dojo.require("esri.tasks.query");
     	dojo.require("esri.layers.FeatureLayer");
@@ -29,38 +27,61 @@
     	function init() {
     	
     		map = new esri.Map("map", {
-    		  center: [149.435, -35.101],
+    		  center: [152.1985, -27.2574],
     		  basemap: "gray",
     		  zoom: 12
     		});
     		
     		dojo.connect(map, "onLoad", function() {
+    		
+    			//Run a query to find lakes with names starting with "A"    		
 	    		var query = new esri.tasks.Query();
 	    		query.returnGeometry = true;
-	    		query.outFields = ["NAME","PERENNIAL","OBJECTID"];
-	    		query.where = "NAME like 'A%'";
-	    		
+	    		query.outFields = ["NAME","OBJECTID","SHAPE"];
+	    		query.where = "NAME like 'LAKE CRESS%'";
 	    		var queryTask = new esri.tasks.QueryTask("http://ga.gov.au/gis/rest/services/topography/Topo_WM/MapServer/72");
 	    		queryTask.execute(query, selectShowResults, SQLerror);
 	    	});
 	    	
-	    	function selectShowResults(results) {
-	    	
-	    		var layer = new modules.QueryLayer(results.features, {
-	    			map: map,
-	    			id: "query layer"
-	    		});
-	    		
-	    		map.addLayer(layer);
-	    		console.log("Found " + results.features.length + " features");
-	    		
-	    		
-	    	}
+			function selectShowResults(results) {
+				//Create a feature layer from the results
+				
+				var featureSet = new esri.tasks.FeatureSet({
+					geometryType: results.geometryType,
+					features: results.features
+				});
+				
+				var layerDefinition = {
+				  "geometryType": results.geometryType,
+				  "fields": results.fields,
+				   "extent": {
+				    "spatialReference": results.spatialReference
+				   }
+				}
+				
+				var featureCollection = {
+				  layerDefinition: layerDefinition,
+				  featureSet: featureSet
+				};
+								
+				var layer = new esri.layers.FeatureLayer(featureCollection, {
+					id: "queryLayer",
+					mode: esri.layers.FeatureLayer.MODE_ONDEMAND
+				})
+				
+				var renderer = new esri.renderer.SimpleRenderer(
+			        new esri.symbol.SimpleFillSymbol("solid", null, new dojo.Color([255, 0, 255, 0.75])
+			    ));
+				
+				layer.setRenderer(renderer);
+				map.addLayer(layer);
+								
+				console.log("There are " + results.features.length + " features");	    		
+			}
 	    	
 	    	function SQLerror(error) {
-	    		var yyy = 0;     	
+	    		console.log("There was a problem with the query");   	
 	    	}
-	    	
     		
      	}
          	    	

@@ -8,50 +8,34 @@ dojo.addOnLoad(function() {
 		// constructor
 		constructor: function(data, options) {
 	
-			this.featureSet = new esri.tasks.FeatureSet();
-			this.featureSet.features = data;
-			
-			this.geometryType = "esriGeometryPolygon"; //featureSet[0].geometry.declaredClass;
-			this.fields = 	[
-			 {
-			   "name": "NAME",
-			   "type": "esriFieldTypeString",
-			   "alias": "Name"
-			  },
-			  {
-			   "name": "PERENNIAL",
-			   "type": "esriFieldTypeString",
-			   "alias": "Perenniality"
-			  },
-			  {
-			     "name": "OBJECTID",
-			     "type": "esriFieldTypeOID",
-			     "alias": "OBJECTID"
-			   }
-			]
-			
-			this.layerDefinition = {
-			  "geometryType": "esriGeometryPolygon",
-			  "fields": this.fields,
-			  "objectIdField": "OBJECTID",
-			}
-			this.featureCollection = {
-			  layerDefinition: this.layerDefinition,
-			  featureSet: this.featureSet
-			};
-			
-			var outline = new esri.symbol.SimpleLineSymbol()
-	              .setColor(dojo.colorFromHex("#fff"));
-	        var sym = new esri.symbol.SimpleFillSymbol()
-	              .setColor(new dojo.Color([52, 67, 83, 0.4]))
-	              .setOutline(outline);
-	        var renderer = new esri.renderer.SimpleRenderer(sym);
-			
-			this.featureLayer = new esri.layers.FeatureLayer(this.featureCollection, {
-			  mode: esri.layers.FeatureLayer.MODE_SNAPSHOT,
-			  renderer: renderer,
-			  id: "queryLayer"
+			var featureSet = new esri.tasks.FeatureSet({
+				geometryType: results.geometryType,
+				features: results.features
 			});
+			
+			var layerDefinition = {
+			  "geometryType": results.geometryType,
+			  "fields": results.fields,
+			   "extent": {
+			    "spatialReference": results.spatialReference
+			   }
+			}
+			
+			var featureCollection = {
+			  layerDefinition: layerDefinition,
+			  featureSet: featureSet
+			};
+							
+			var this.featureLayer = new esri.layers.FeatureLayer(featureCollection, {
+				id: "queryLayer",
+				mode: esri.layers.FeatureLayer.MODE_ONDEMAND
+			})
+			
+			var renderer = new esri.renderer.SimpleRenderer(
+			    new esri.symbol.SimpleFillSymbol("solid", null, new dojo.Color([255, 0, 255, 0.75])
+			));
+			this.featureLayer.setRenderer(renderer);
+			
 		},	
 		setVisibility: function(val){
 			this.graphics.setVisibility(val);

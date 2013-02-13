@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Feature layer from featureCollection</title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/dojo/dijit/themes/nihilo/nihilo.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
+    <script>var dojoConfig = { parseOnLoad: true };</script>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
+    <script src="http://localhost/mpf/scripts/esri/QueryLayer.js"></script>
+    <style>
+		html, body { 
+			height: 100%; width: 100%;
+			margin: 0; padding: 0;
+		} 
+    </style>
+    <script>
+    	dojo.require("dijit.layout.BorderContainer");
+    	dojo.require("dijit.layout.ContentPane");
+    	dojo.require("esri.map");
+    	dojo.require("esri.tasks.query");
+    	dojo.require("esri.layers.FeatureLayer");
+    	
+    	var feObj = {}
+    	
+    	function init() {
+    	
+    		feObj.mapFrame = new esri.Map("map", {
+    		  center: [152.1985, -27.2574],
+    		  basemap: "gray",
+    		  zoom: 12
+    		});
+    		
+    		dojo.connect(feObj.mapFrame, "onLoad", function() {
+    		
+    			//Run a query to find lakes with names starting with "A"    		
+	    		var query = new esri.tasks.Query();
+	    		query.returnGeometry = true;
+	    		query.outFields = ["NAME","OBJECTID","SHAPE"];
+	    		query.where = "NAME like 'LAKE CA%'";
+	    		var queryTask = new esri.tasks.QueryTask("http://ga.gov.au/gis/rest/services/topography/Topo_WM/MapServer/72");
+	    		queryTask.execute(query, selectShowResults, SQLerror);
+	    	});
+	    	
+			function selectShowResults(results) {
+				    	
+	    		var queryLayer = new modules.QueryLayer(results, {
+	    			id: "query layer"
+	    		});
+	    		
+	    		feObj.mapFrame.addLayer(queryLayer.featureLayer);
+	    		
+	    		queryLayer.zoomToResults(results);
+
+	    		
+	    	}
+			
+	    	
+	    	function SQLerror(error) {
+	    		console.log("There was a problem with the query");   	
+	    	}
+    		
+     	}
+         	    	
+    	dojo.ready(init);
+    </script>
+    
+  </head>
+  <body class="nihilo">
+    <div id="mainWindow" 
+         data-dojo-type="dijit.layout.BorderContainer" 
+         data-dojo-props="design:'headline',gutters:false"
+         style="width: 100%; height: 100%; margin: 0;">
+      <div id="map" class="shadow" 
+           data-dojo-type="dijit.layout.ContentPane"
+           data-dojo-props="region:'center'">
+      </div>
+    </div>
+  </body>
+</html>

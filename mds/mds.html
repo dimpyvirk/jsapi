@@ -29,7 +29,7 @@
     var bm = new esri.layers.ArcGISTiledMapServiceLayer("http://ga.gov.au/gis/rest/services/topography/Topo_WM/MapServer");
     map.addLayer(bm);
       
-    var mdsLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://arcservices.mdsgeoplace.com/MDS/rest/services/MDSFoundationMapGreyscale/MapServer?token=RuOMfaacBw3-EO3u2Zp1OYLPcxH4UUxWqY_4PDDGNTH3XSzoNvbDYY0SAOrcOrL7vQyG6qMqK9tWHxUFOcdkMg..");
+    var mdsLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://arcservices.mdsgeoplace.com/MDS/rest/services/MDSFoundationMapGreyscale/MapServer?token=4ETnjtPA_C-brvoJ2rF83SVbJveCyZfcpnqWZwZZ_mdGBUj5dagH35uQl-DpxCr3bUgKJEmdFZet7GMU4e-IZQ..");
     map.addLayer(mdsLayer);
     
     dojo.connect(mdsLayer, "onError", function(error) {

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Data Tables test</title>
+    <link href="http://code.jquery.com/ui/jquery-ui-git.css" type="text/css" rel="stylesheet" />
+    <link href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables.css" rel="stylesheet" type="text/css" >
+        
+</head>
+<body>
+	<button id="initialise" onClick="initialise()" style="display: none" ;type="button">Initialise</button>
+	<button class="layers" onClick="loadLayer1()" style="display: none;" type="button">Load layer 1</button>
+	<button class="layers" onClick="loadLayer2()" style="display: none;" type="button">Load layer 2</button>
+	
+    	       	
+   	<div id="SearchResults">
+   		<div id="searchResultsTabs">
+   			<ul id="searchResultsTabsUL"></ul>
+   		</div>
+   	</div>
+       	
+    <script type="text/javascript">djConfig={parseOnLoad:true};</script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/ui/1.9.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js" ></script>
+    <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.3compact"></script>
+    <script type="text/javascript" src="SelectionSet.js"></script>
+    
+    <script type="text/javascript">
+    
+    var layer1, layer2;
+    
+    function initialise() {
+    	layer1 = new modules.SelectionLayer(
+    		{
+    			id: "layer1",
+    			fields: ["Name","Address1","Town"]
+    		}
+    	);
+    	
+    	layer2 = new modules.SelectionLayer(
+    		{
+    			id: "layer2",
+    			fields: ["Name","region_id","Tot_P_P","Shape_Area"]
+    		}
+    	);
+    	
+    	$("#searchResultsTabs").tabs();
+    	$("#initialise").hide();
+    	$(".layers").show();
+    	
+    }
+    
+    function loadLayer1() {
+    	var features = [
+    	  {
+    	   "attributes": {
+    	    "Name": "Mitcham Mall",
+    	    "Address1": "Enterprise Way",
+    	    "Town": "Mitcham"
+    	   }
+    	  },
+    	  {
+    	   "attributes": {
+    	    "Name": "Batchelor",
+    	    "Address1": "Nurndina Street",
+    	    "Town": "Batchelor"
+    	   }
+    	  }
+    	 ]
+    	 
+    	 layer1.addFeatures(features);
+    }
+    
+    function loadLayer2() {
+    	var features= [
+    	  {
+    	   "attributes": {
+    	    "Name": "Albury (C)",
+    	    "region_id": "LGA10050",
+    	    "Tot_P_P": 47810,
+    	    "Shape_Area": 468710730
+    	   }
+    	  },
+    	  {
+    	   "attributes": {
+    	    "Name": "Armidale (A)",
+    	    "region_id": "LGA10110",
+    	    "Tot_P_P": 24105,
+    	    "Shape_Area": 5722894900
+    	   }
+    	  }
+    	 ];
+    	 
+    	 layer2.addFeatures(features);
+    }
+    
+    $(document).ready(function() {
+     	$("#initialise").show();
+    });
+    	
+    </script>
+    
+</body>
+</html>

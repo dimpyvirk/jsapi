@@ -1,0 +1,2313 @@
+// ==ClosureCompiler==
+// @compilation_level SIMPLE_OPTIMIZATIONS
+// @output_file_name default.js
+// @code_url http://domorewithmaps.com/mpf/scripts/esri/main.js
+// @code_url http://domorewithmaps.com/mpf/scripts/esri/QueryLayer.js
+// @code_url http://domorewithmaps.com/mpf/scripts/esri/SQLquery.js
+// @code_url http://domorewithmaps.com/mpf/scripts/esri/SelectionSet.js
+// @code_url http://domorewithmaps.com/mpf/scripts/esri/advancedTools.js
+// @code_url http://domorewithmaps.com/mpf/scripts/esri/cluster.js
+// @code_url http://domorewithmaps.com/mpf/scripts/esri/mapBasemaps.js
+// @code_url http://domorewithmaps.com/mpf/scripts/esri/mapLayers.js
+// @code_url http://domorewithmaps.com/mpf/scripts/esri/places.js
+// @code_url http://domorewithmaps.com/mpf/scripts/esri/print.js
+// @code_url http://domorewithmaps.com/mpf/scripts/esri/selectByAttrs.js
+// @code_url http://domorewithmaps.com/mpf/scripts/common/mapCategories.js
+// @code_url http://domorewithmaps.com/mpf/scripts/common/sharing.js
+// @code_url http://domorewithmaps.com/mpf/scripts/common/shortcuts.js
+// @code_url http://domorewithmaps.com/mpf/scripts/common/userInterface.js
+// ==/ClosureCompiler==
+
+// ADD YOUR CODE HERE
+/*------------------------------------*/
+// .indexOf for lame IE
+/*------------------------------------*/
+if(!Array.indexOf){
+	Array.prototype.indexOf = function(obj){
+		var len = this.length
+		for(var i=0; i<len; i++){
+			if(this[i]==obj){
+				return i;
+			}
+		}
+		return -1;
+	}
+}
+/*------------------------------------*/
+// PARSING TEXT
+/*------------------------------------*/
+String.prototype.parseURL = function() {
+	return this.replace(/[A-Za-z]+:\/\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&~\?\/.=]+/g, function(url) {
+		return '<a target="_blank" href="'+ url +'">' + url + '</a>';
+	});
+};
+String.prototype.parseUsername = function() {
+	return this.replace(/[@]+[A-Za-z0-9-_]+/g, function(u) {
+		var username = u.replace("@","");
+		return '<a target="_blank" href="http://twitter.com/'+ username +'">' + u + '</a>';
+	});
+};
+String.prototype.parseHashtag = function() {
+	return this.replace(/[#]+[A-Za-z0-9-_]+/g, function(t) {
+		var tag = t.replace("#","%23");
+		return '<a target="_blank" href="http://search.twitter.com/search?q='+ tag +'">' + t + '</a>';
+	});
+};
+/*------------------------------------*/
+// ALERT
+/*------------------------------------*/
+function alertMPF(text){
+	var dialogObj = jQuery('#dialog-message');
+	dialogObj.text(text);
+	dialogObj.dialog({
+		modal: true,
+		title: 'Alert',
+		autoOpen: true,
+		closeOnEscape:true,
+		resizable:true,
+		draggable:true,
+		height:'auto',
+		width:'auto',
+		position:'center',
+		buttons: {
+			Ok: function() {
+				jQuery(this).dialog("close");
+			}
+		}
+	});
+}
+/*------------------------------------*/
+// BAD WORD MATCH
+/*------------------------------------*/
+function findWordInText(word,text){
+	if(word && text){
+		// TEXT
+		var searchString = text.toLowerCase();
+		// WORD
+		var badWord = ' '+ word.toLowerCase() + ' ';
+		// IF FOUND
+		if(searchString.indexOf(badWord) > -1){
+			if(userConfig.application.development){
+				console.log('----------------------');
+				console.log('Filtered word: ' +word);
+				console.log('Text: ' + text);
+				console.log('----------------------');
+			}
+			return true;
+		}
+	}
+	return false;
+}
+/*------------------------------------*/
+// ZEBRA STRIPE OBJECT
+/*------------------------------------*/
+function zebraStripe(obj){
+	obj.removeClass("stripe");
+	obj.filter(":even").addClass("stripe");
+}
+/*------------------------------------*/
+// RETURNS BUTTON CLASS FOR MENU
+/*------------------------------------*/
+function getButtonClass(i, size){
+	if((i === 1) && (i === size)){
+		return 'buttonSingle';
+	}
+	else{
+		switch(i){
+			case 1:
+				return 'buttonLeft';
+			case size:
+				return 'buttonRight';
+			default:
+				return 'buttonCenter';
+		}
+	}
+}
+/*------------------------------------*/
+// FORMAT DATE TO OUR LIKING
+/*------------------------------------*/
+function mpfDate(momentObj){
+	if(momentObj){
+		return momentObj.format("MMMM Do, YYYY") + ' at ' + momentObj.format("h:mm a");
+	}
+}
+/*------------------------------------*/
+// RESTRICT INT
+/*------------------------------------*/
+function RestrictInt(val){
+    if (isNaN(val)){
+        return false;
+    }
+    else{
+		return true;
+    }
+}
+/*------------------------------------*/
+// CREATE BIT.LY URL
+/*------------------------------------*/
+function bitlyURL(longURL, callback){
+	if(userConfig.application.bitly){
+		if(userConfig.application.bitly.login && userConfig.application.bitly.key && userConfig.application.bitly.APIURL){
+			jQuery.ajax({
+				url: userConfig.application.bitly.APIURL,
+				data: 'login=' + userConfig.application.bitly.login + '&apiKey=' + userConfig.application.bitly.key + '&longUrl=' +  longURL + '&format=json',
+				dataType:'jsonp',
+				success: function(result,textStatus, jqXHR){
+					if(result.data.url){
+						if(typeof callback === 'function'){
+							callback(result.data.url);
+						}
+						else{
+							if(userConfig.application.development){
+								console.log('Callback is invalid or undefined.');	
+							}
+						}
+					}
+					else{
+						if(userConfig.application.development){
+							console.log("Bitly didn't return a URL. Error " + result.status_code + ": " + result.status_txt);
+						}
+					}
+				},
+				error: function(jqXHR, textStatus, errorThrown){
+					if(userConfig.application.development){
+						console.log('ajax bad response.');
+					}
+				}
+			});
+		}
+	}
+}
+/*------------------------------------*/
+// GETS PARAMS FROM URL
+/*------------------------------------*/      
+function URLLookup( name ){
+    var results = (new RegExp("[\\?&]"+name+"=([^&#]*)")).exec(window.location.href);
+    if ( results == null ) {return ""}
+    else {return results[1]}
+}
+/*------------------------------------*/
+// Get distances for social search based on vernacular slider
+/*------------------------------------*/
+function getSocialDistance(socID){
+	var distance;
+	socID = socID.toLowerCase();
+	//distance = socialSliderValues[socialSliderCurrent].values[socID];
+	distance = 100;
+	if(userConfig.application.development){
+		console.log(socID+" distance: "+ distance);
+	}
+	return distance;
+}
+
+/*------------------------------------*/
+// SHOW MENU FUNCTION
+/*------------------------------------*/
+function showMenu(menuObj, buttonObj){
+	jQuery(menuObj).slideDown('fast');
+	if(buttonObj){
+		jQuery(buttonObj).addClass('buttonSelected');
+	}
+}
+/*------------------------------------*/
+// HIDE LAYER INFO
+/*------------------------------------*/
+function hideLayerInfo(){
+	jQuery('.listMenu ul li .infoHidden').hide();
+	jQuery('.listMenu ul li').removeClass('active');	
+}
+
+/*------------------------------------*/
+// SEARCH BOX JAVASCRIPT
+/*------------------------------------*/
+// CLEAR ADDRESS FUNCTION THAT REMOVES BUTTON AS WELL
+function clearAddress(obj){
+	jQuery(obj).val('');
+	var iconReset = jQuery(obj).prev('.iconClear');
+	iconReset.removeClass('iconReset').attr("title", "");
+}
+// CHECKS TO SEE IF ADDRESS IS POPULATED
+function checkAddressStatus(obj){
+	var cAVal = jQuery(obj).val();
+	var iconReset = jQuery(obj).prev('.iconClear');
+	if(cAVal !== userConfig.application.searchBoxPlaceholder && cAVal !== ''){
+		iconReset.addClass('iconReset').attr("title", "Clear Location");
+	}
+}
+/*------------------------------------*/
+// Folder Layer CheckBoxes
+/*------------------------------------*/
+function toggleChecked(obj){
+	var $list = jQuery(obj).parent('li');
+	
+	if($list.hasClass('checked')){
+		$list.removeClass('cLoading');
+	}
+	$list.toggleClass('checked');
+}
+
+//SL. When a radio button is chosen, unselect all other child elements from the same family
+function toggleRadio(obj){
+
+	var numChildren = obj.parentElement.parentElement.childElementCount;
+	for (var i=0; i < numChildren; i++) {
+		var $list = $(obj).parent('li');
+		if($list.hasClass('checked')){
+			$list.removeClass('cLoading');
+		}
+		else{
+			$list.addClass('cLoading');
+		}
+		$list.toggleClass('checked');
+	}
+
+}
+
+//Update the map's title. Retrieve the title from the array of maps
+function updateMapTitle() {
+	var numMaps = userConfig.maps.length;
+	for(var j=0; j< numMaps; j++) {
+		var id = userConfig.maps[j].id;
+		if(id === currentMap) {
+			var title = userConfig.maps[j].title;
+			jQuery('#mapTitle').html(title);
+			break;
+		}
+	}		
+}
+
+/*------------------------------------*/
+// HIDE AUTO COMPLETE
+/*------------------------------------*/
+function hideAC(){
+	jQuery('#autoComplete').hide();	
+}
+
+/*------------------------------------*/
+// TOGGLE LEGEND
+/*------------------------------------*/
+function toggleLegend(){
+	if(jQuery("#legendDialog").is(':visible')) {
+		jQuery("#legendButton").removeClass("buttonPressed");
+		jQuery('#legendDialog').hide(500);
+	} else {
+		jQuery("#legendButton").addClass("buttonPressed");
+		jQuery('#legendDialog').show(500);
+	}
+}
+
+/*------------------------------------*/
+// TOGGLE Print dialog
+/*------------------------------------*/
+function togglePrint(){
+	if(jQuery("#printDialog").is(':visible')) {
+		jQuery("#printButton").removeClass("buttonPressed");
+		jQuery('#printDialog').hide(500);
+	} else {
+		jQuery("#printButton").addClass("buttonPressed");
+		jQuery('#printDialog').show(500);
+	}
+	//Clear the results section
+	jQuery("#printDialog #printResults").text("");
+}
+
+/*------------------------------------*/
+// TOGGLE SETTINGS
+/*------------------------------------*/
+function toggleSettings(){
+	//hidePopup();
+	if(feMap.settingsDialog.dialog('isOpen')){
+		feMap.settingsDialog.dialog('close');
+	}
+	else{
+		feMap.settingsDialog.dialog('open');	
+	}
+}
+
+function toggleAdvancedTools() {
+	//Show/hide the Advanced Tools toolbar
+	if(jQuery("#fe-advanced-toolbar").is(":visible")) {
+		//When closing the Advanced Tools toolbox, deactivate the toolbars and remove any graphics
+		feMap.drawToolbar.deactivate();
+		feMap.measurementToolbar.deactivate();
+		feMap.selectionToolbar.deactivate();
+		feMap.drawLayer.setVisibility(false);
+		feMap.selectDrawLayer.setVisibility(false);
+		feMap.measurementLayer.setVisibility(false);
+		jQuery("#toolboxButton").removeClass("buttonPressed");
+	} else {
+		feMap.drawLayer.setVisibility(true);
+		feMap.selectDrawLayer.setVisibility(true);
+		feMap.measurementLayer.setVisibility(true);
+		jQuery("#toolboxButton").addClass("buttonPressed");
+	}
+	jQuery("#fe-advanced-toolbar").toggle("fast");
+	
+	if (jQuery(this).hasClass("navBarButtonActive")) {
+		jQuery(this).removeClass("navBarButtonActive");
+	} else {
+		jQuery(this).addClass("navBarButtonActive");
+	}
+}
+
+function toggleWelcomeDialog() {
+	if(jQuery("#welcomeDialog").is(':visible')) {
+		jQuery("#welcomeDialog").hide();
+	} else {
+		jQuery("#welcomeDiv").html(userConfig.application.welcomeDialog.message);
+		jQuery("#welcomeDialog").show();
+	}
+}
+
+/*------------------------------------*/
+// TOGGLE OVERLAY panel
+/*------------------------------------*/
+function toggleOverlay(){
+	//hidePopup();
+	if(overlayerDialog.dialog('isOpen')){
+		overlayDialog.dialog('close');
+	}
+	else{
+		overlayDialog.dialog('open');	
+	}
+}
+/*------------------------------------*/
+// TOGGLE SETTINGS CONTENT
+/*------------------------------------*/
+function toggleSettingsContent(){
+	jQuery('#collapseIcon').toggleClass('iconDown');
+	jQuery('#settingsPanel').toggle();
+}
+/*------------------------------------*/
+// REMOVES SNAKE SPINNER FROM OBJECT AND ADDS COMPLETE ICON TO OBJECT 2 THEN FADES OUT
+/*------------------------------------*/
+function hideLoading(obj, obj2){
+    if(obj){
+        obj.removeClass('cLoading');
+    }
+    if(obj2){
+        obj2.removeClass('Loading').addClass('LoadingComplete');
+    }
+}
+
+/*------------------------------------*/
+// SETS LOCATE STRING ON INIT
+/*------------------------------------*/
+function setLocateValues(){
+	if(!feMap.locateString && userConfig.application.locateString) {
+		feMap.locateString = userConfig.application.locateString;
+	}
+}
+/*------------------------------------*/
+// LOCATES PLACES MENU IN CORRECT POSITION
+/*------------------------------------*/
+function updatePlacesOffset(){
+	if(userConfig.application.showAbout ){
+		var leftOffset = jQuery('#placesButton').offset();
+		leftOffset = leftOffset.left;
+		jQuery('#placesMenu').css('left',leftOffset+'px');
+	}
+}
+/*------------------------------------*/
+// PUTS SHARE MENU IN CORRECT PLACE
+/*------------------------------------*/
+function updateShareOffset(){
+	var leftOffset = jQuery('#shareMap').offset();
+	if(leftOffset) {
+		leftOffset = leftOffset.left;
+		jQuery('#shareControls').css('left',leftOffset+'px');
+	}
+}
+
+/*------------------------------------*/
+// PLACES
+/*------------------------------------*/
+function setPlaceValues(){
+	if(feMap.placesTmp){
+		feMap.places = $.evalJSON(decodeURIComponent(feMap.placesTmp));
+	}
+}
+/*------------------------------------*/
+// DELETE PLACE LIST ITEM
+/*------------------------------------*/
+function deletePlacesListItem(objIndex){
+	jQuery('#placesMenu li.sharedItem:eq(' + objIndex + ')').remove();
+	zebraStripe(jQuery('#placesList li.layer'));
+}
+/*------------------------------------*/
+// HIDE SHARE ADD
+/*------------------------------------*/
+function hideShareAdd(){
+	jQuery('#shareAddOpen').hide();
+	jQuery('#shareAddFull').show();
+	zebraStripe(jQuery('#placesList li.layer'));
+}
+/*------------------------------------*/
+// SHOW SHARE ADD
+/*------------------------------------*/
+function showShareAdd(){
+	jQuery('#shareAddOpen').show();
+	jQuery('#shareAddFull').hide();
+	zebraStripe(jQuery('#placesList li.layer'));
+}
+
+/*------------------------------------*/
+// GET APPLICATION URL
+/*------------------------------------*/
+function getAppLoc(){
+	// split path directories
+	var mpfPath = window.location.pathname.split("/");
+	// Page name
+	var mpfPage = mpfPath[mpfPath.length - 1];
+	// remove page
+	mpfPath.pop();
+	// connect directories again
+	var mpfPathNew = mpfPath.join("/") + "/";
+	// Origin Value
+	var mpfOrigin = '';
+	// If protocol
+	if(window.location.protocol){
+		mpfOrigin += window.location.protocol + '//';
+	}
+	// If host
+	if(window.location.host){
+		mpfOrigin += window.location.host;
+	}
+	
+	//Write the application title to the userConfig object, so we can retrieve it from the embedded map
+	userConfig.appURL = mpfOrigin + mpfPathNew + mpfPage;
+	
+	// return
+	return mpfOrigin + mpfPathNew + mpfPage;
+}
+
+/*------------------------------------*/
+// SET VALUES FROM URL
+/*------------------------------------*/
+function setValuesFromURL(){
+	feMap.locateString = decodeURIComponent(URLLookup("adr"));
+	feMap.baseMap = decodeURIComponent(URLLookup("bm"));
+	feMap.sXmin = parseFloat(URLLookup("xmin"));
+	feMap.sYmin = parseFloat(URLLookup("ymin"));
+	feMap.sXmax = parseFloat(URLLookup("xmax"));
+	feMap.sYmax = parseFloat(URLLookup("ymax"));
+	feMap.lat = parseFloat(URLLookup("lat"));
+	feMap.lon = parseFloat(URLLookup("lon"));
+	feMap.buffer = parseFloat(URLLookup("buffer"));
+	feMap.isEmbedded = decodeURIComponent(URLLookup("embed"));
+	feMap.placesTmp = URLLookup("plcs");
+	feMap.kmlURL = URLLookup("kml");
+	visLyrs = URLLookup("lrs");
+	// if visLyrs is set
+	if(visLyrs){
+		visLyrs = visLyrs.split(',');
+	}
+	feMap.visMap = URLLookup("map");
+}
+
+/*------------------------------------*/
+// SET SHARING
+/*------------------------------------*/
+function setSharing(shareEmbed){
+	// CONFIGURE PLACES
+	if(feMap.places) {
+		feMap.placesJSON = encodeURIComponent(jQuery.toJSON(feMap.places));
+	}
+	// GENERATE VISIBLE LAYERS STRING
+	var visString ='none';
+	if(feMap.activeLayers){
+		if(feMap.activeLayers.length > 0) {
+			visString = feMap.activeLayers.toString();
+		}
+	}
+	else if(visLyrs){
+		visString = visLyrs.toString();
+	}
+	// SHARE PARAMATERS
+	feMap.shareParams = '?';
+	
+	//Current map
+	if(currentMap){feMap.shareParams += '&map=' + currentMap;}
+	
+	// ACTIVE LAYERS
+	if(visString){feMap.shareParams += '&lrs=' + visString;}
+	
+	if(feMap.baseMap) {feMap.shareParams += '&bm=' + feMap.baseMap;}
+	// LOCATE
+	if(feMap.locateString){feMap.shareParams += '&adr=' + encodeURIComponent(feMap.locateString);}
+		
+	// EXTENT
+	feMap.shareParams += '&xmin=' + feMap.sXmin;
+	feMap.shareParams += '&ymin=' + feMap.sYmin;
+	feMap.shareParams += '&xmax=' + feMap.sXmax;
+	feMap.shareParams += '&ymax=' + feMap.sYmax;
+	// PLACES
+	if(feMap.places && feMap.places.length > 0){feMap.shareParams += '&plcs=' + feMap.placesJSON;}
+	
+	//KML overlay
+	if(feMap.kmlURL.length > 0) {feMap.shareParams += '&kml=' + feMap.kmlURL;}
+	
+	// SHARE URL
+    feMap.shareURL = feMap.appURL + feMap.shareParams;
+    
+	// EMBED URL
+	if(shareEmbed){
+		embedURL = '<iframe  frameborder="0" scrolling="no" marginheight="0" marginwidth="0" width="' + mapWidth + '" height="' + mapHeight + '" align="center" src="' + feMap.shareURL + '&embed=1"></iframe>';
+		// SET EMBED URL
+		jQuery('#inputEmbed').val(embedURL);
+	}
+	else{
+		// SET SHARE URL
+		jQuery('#inputShare').val(feMap.shareURL);
+	}
+}
+/*------------------------------------*/
+// SHOWS THE SNAKE SPINNER ON OBJECT
+/*------------------------------------*/
+function showLoading(obj){
+    if(obj){
+        jQuery('#' + obj).removeClass('LoadingComplete').addClass('Loading').show();
+    }
+}
+/*------------------------------------*/
+// CHANGE ACTIVE LAYERS
+/*------------------------------------*/
+function getActiveLayerIndex(layerid){
+	var indexNum = feMap.activeLayers.indexOf(layerid);
+	return indexNum;
+}
+function addToActiveLayers(layerid){
+	var theIndex = getActiveLayerIndex(layerid);
+	if(theIndex === -1){
+		feMap.activeLayers.push(layerid);
+	}
+	setSharing();
+}
+function removeFromActiveLayers(layerid){
+	var theIndex = getActiveLayerIndex(layerid);
+	for(theIndex; theIndex > -1; theIndex = getActiveLayerIndex(layerid)) {
+		feMap.activeLayers.splice(theIndex, 1);
+	}
+	setSharing();
+}
+
+function inArray(a)
+//tests whether a value is found in an array
+{
+  var o = {};
+  var len = a.length
+  for(var i=0; i < len; i++)
+  {
+    o[a[i]]='';
+  }
+  return o;
+}
+
+function checkForToken(url, token){
+	if(token){
+		// append token to URL
+		url += '?token=' + token;
+	}
+	return url;
+}
+
+function isPhone() {
+	if (jQuery(window).width() <= 480) {
+		return true;
+	} else {
+		return false;
+	} 
+}
+
+/*------------------------------------*/
+// TOGGLE MENUS
+/*------------------------------------*/
+function toggleMenus(menuObj, buttonObj){
+	if(menuObj){
+		//hidePopup();
+	}
+	var currentlyOpen = jQuery('.slideMenu').filter(':visible');
+	var currentlyOpenID = '#'+currentlyOpen.attr('id');
+	hideLayerInfo();
+	//jQuery('#topMenuCon .mapButton').removeClass('buttonSelected');
+	jQuery('.mapButton').removeClass('buttonSelected');
+	if(currentlyOpenID !== menuObj && menuObj){
+		currentlyOpen.slideUp('fast',showMenu(menuObj, buttonObj));
+	}
+	else{
+		currentlyOpen.slideUp('fast');
+	}
+	
+}
+
+/*------------------------------------*/
+// CONFIGURE PLACES
+/*------------------------------------*/
+function configurePlaces(){
+	// DEFAULT VARIABLES
+	feMap.maxSharedPlaces = 5;
+	feMap.maxPlaceLength = 20;
+	feMap.defaultPlaceName = 'Untitled Place';
+	feMap.changedPlaces = false;
+	feMap.changedPlacesObj = 0;
+	// IF PLACES
+	if(document.getElementById("placesMenu")){
+		// INSERT PLACES BUTTON
+		jQuery('#placesCon').html('<span id="placesButton" class="mapButton buttonSingle" title="Bookmark Places"><span class="iconBlock"></span>My Places</span>');
+		// CREATE LIST
+		jQuery('#placesMenu').html('<ul class="zebraStripes" id="placesList"><li class="layer" id="addPlaceShow"><span class="placesIcon placesClick"></span><span class="title placesClick">Add Place</span></li></ul><div id="shareAddCon"><div id="shareAddOpen"><input maxlength="'+feMap.maxPlaceLength+'" placeholder="'+feMap.defaultPlaceName+'" id="placeInput" class="mapInput inputSingle" type="text" value="" /><div class="desc"><label for="placeInput">Captures map extent and active layers.</label></div><div class="action"><span id="addPlaceHide" class="mapCancel">Cancel</span><span id="addSharedPlace" class="mapSubmit buttonSingle">Add</span></div></div><div id="shareAddFull"><p>Maximum '+feMap.maxSharedPlaces+' Places allowed.</p><p>Please remove a Place to continue.</p></div></div>');
+		// IF SHARE OBJECT
+		if(feMap.places && feMap.places.length > 0){
+			for(i=0; i < feMap.places.length; i++){
+				if(i < feMap.maxSharedPlaces){
+					createPlacesListItem(i);
+				}
+			}
+		}
+		if(feMap.places.length >= feMap.maxSharedPlaces){
+			hideShareAdd();
+		}
+		// SET ON CLICKS
+		placesOnClick();
+		zebraStripe(jQuery('#placesList li.layer'));
+	}
+	
+	// IF GEOLOCATION
+	if(userConfig.application.showGeolocation && Modernizr.geolocation){
+		createGeolocateItem();
+	}
+}
+
+function raiseAlert(title,text) {
+		
+	var unique_id = jQuery.gritter.add({
+		// (string | mandatory) the heading of the notification
+		title: title,
+		// (string | mandatory) the text inside the notification
+		text: text,
+		// (string | optional) the image to display on the left
+		image: 'http://domorewithmaps.com/assets/img/FE-symbol.png',
+		// (bool | optional) if you want it to fade out on its own or just sit there
+		sticky: true, 
+		// (int | optional) the time you want it to be alive for before fading out
+		time: '',
+		// (string | optional) the class name you want to apply to that specific message
+		class_name: 'my-sticky-class' 
+	});
+	
+	return false;
+}
+
+function clearAlerts() {
+	jQuery.gritter.removeAll();
+	return false;
+}
+
+function md5cycle(x, k) {
+var a = x[0], b = x[1], c = x[2], d = x[3];
+
+a = ff(a, b, c, d, k[0], 7, -680876936);
+d = ff(d, a, b, c, k[1], 12, -389564586);
+c = ff(c, d, a, b, k[2], 17,  606105819);
+b = ff(b, c, d, a, k[3], 22, -1044525330);
+a = ff(a, b, c, d, k[4], 7, -176418897);
+d = ff(d, a, b, c, k[5], 12,  1200080426);
+c = ff(c, d, a, b, k[6], 17, -1473231341);
+b = ff(b, c, d, a, k[7], 22, -45705983);
+a = ff(a, b, c, d, k[8], 7,  1770035416);
+d = ff(d, a, b, c, k[9], 12, -1958414417);
+c = ff(c, d, a, b, k[10], 17, -42063);
+b = ff(b, c, d, a, k[11], 22, -1990404162);
+a = ff(a, b, c, d, k[12], 7,  1804603682);
+d = ff(d, a, b, c, k[13], 12, -40341101);
+c = ff(c, d, a, b, k[14], 17, -1502002290);
+b = ff(b, c, d, a, k[15], 22,  1236535329);
+
+a = gg(a, b, c, d, k[1], 5, -165796510);
+d = gg(d, a, b, c, k[6], 9, -1069501632);
+c = gg(c, d, a, b, k[11], 14,  643717713);
+b = gg(b, c, d, a, k[0], 20, -373897302);
+a = gg(a, b, c, d, k[5], 5, -701558691);
+d = gg(d, a, b, c, k[10], 9,  38016083);
+c = gg(c, d, a, b, k[15], 14, -660478335);
+b = gg(b, c, d, a, k[4], 20, -405537848);
+a = gg(a, b, c, d, k[9], 5,  568446438);
+d = gg(d, a, b, c, k[14], 9, -1019803690);
+c = gg(c, d, a, b, k[3], 14, -187363961);
+b = gg(b, c, d, a, k[8], 20,  1163531501);
+a = gg(a, b, c, d, k[13], 5, -1444681467);
+d = gg(d, a, b, c, k[2], 9, -51403784);
+c = gg(c, d, a, b, k[7], 14,  1735328473);
+b = gg(b, c, d, a, k[12], 20, -1926607734);
+
+a = hh(a, b, c, d, k[5], 4, -378558);
+d = hh(d, a, b, c, k[8], 11, -2022574463);
+c = hh(c, d, a, b, k[11], 16,  1839030562);
+b = hh(b, c, d, a, k[14], 23, -35309556);
+a = hh(a, b, c, d, k[1], 4, -1530992060);
+d = hh(d, a, b, c, k[4], 11,  1272893353);
+c = hh(c, d, a, b, k[7], 16, -155497632);
+b = hh(b, c, d, a, k[10], 23, -1094730640);
+a = hh(a, b, c, d, k[13], 4,  681279174);
+d = hh(d, a, b, c, k[0], 11, -358537222);
+c = hh(c, d, a, b, k[3], 16, -722521979);
+b = hh(b, c, d, a, k[6], 23,  76029189);
+a = hh(a, b, c, d, k[9], 4, -640364487);
+d = hh(d, a, b, c, k[12], 11, -421815835);
+c = hh(c, d, a, b, k[15], 16,  530742520);
+b = hh(b, c, d, a, k[2], 23, -995338651);
+
+a = ii(a, b, c, d, k[0], 6, -198630844);
+d = ii(d, a, b, c, k[7], 10,  1126891415);
+c = ii(c, d, a, b, k[14], 15, -1416354905);
+b = ii(b, c, d, a, k[5], 21, -57434055);
+a = ii(a, b, c, d, k[12], 6,  1700485571);
+d = ii(d, a, b, c, k[3], 10, -1894986606);
+c = ii(c, d, a, b, k[10], 15, -1051523);
+b = ii(b, c, d, a, k[1], 21, -2054922799);
+a = ii(a, b, c, d, k[8], 6,  1873313359);
+d = ii(d, a, b, c, k[15], 10, -30611744);
+c = ii(c, d, a, b, k[6], 15, -1560198380);
+b = ii(b, c, d, a, k[13], 21,  1309151649);
+a = ii(a, b, c, d, k[4], 6, -145523070);
+d = ii(d, a, b, c, k[11], 10, -1120210379);
+c = ii(c, d, a, b, k[2], 15,  718787259);
+b = ii(b, c, d, a, k[9], 21, -343485551);
+
+x[0] = add32(a, x[0]);
+x[1] = add32(b, x[1]);
+x[2] = add32(c, x[2]);
+x[3] = add32(d, x[3]);
+
+}
+
+function cmn(q, a, b, x, s, t) {
+a = add32(add32(a, q), add32(x, t));
+return add32((a << s) | (a >>> (32 - s)), b);
+}
+
+function ff(a, b, c, d, x, s, t) {
+return cmn((b & c) | ((~b) & d), a, b, x, s, t);
+}
+
+function gg(a, b, c, d, x, s, t) {
+return cmn((b & d) | (c & (~d)), a, b, x, s, t);
+}
+
+function hh(a, b, c, d, x, s, t) {
+return cmn(b ^ c ^ d, a, b, x, s, t);
+}
+
+function ii(a, b, c, d, x, s, t) {
+return cmn(c ^ (b | (~d)), a, b, x, s, t);
+}
+
+function md51(s) {
+txt = '';
+var n = s.length,
+state = [1732584193, -271733879, -1732584194, 271733878], i;
+for (i=64; i<=s.length; i+=64) {
+md5cycle(state, md5blk(s.substring(i-64, i)));
+}
+s = s.substring(i-64);
+var tail = [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
+for (i=0; i<s.length; i++)
+tail[i>>2] |= s.charCodeAt(i) << ((i%4) << 3);
+tail[i>>2] |= 0x80 << ((i%4) << 3);
+if (i > 55) {
+md5cycle(state, tail);
+for (i=0; i<16; i++) tail[i] = 0;
+}
+tail[14] = n*8;
+md5cycle(state, tail);
+return state;
+}
+
+/* there needs to be support for Unicode here,
+ * unless we pretend that we can redefine the MD-5
+ * algorithm for multi-byte characters (perhaps
+ * by adding every four 16-bit characters and
+ * shortening the sum to 32 bits). Otherwise
+ * I suggest performing MD-5 as if every character
+ * was two bytes--e.g., 0040 0025 = @%--but then
+ * how will an ordinary MD-5 sum be matched?
+ * There is no way to standardize text to something
+ * like UTF-8 before transformation; speed cost is
+ * utterly prohibitive. The JavaScript standard
+ * itself needs to look at this: it should start
+ * providing access to strings as preformed UTF-8
+ * 8-bit unsigned value arrays.
+ */
+function md5blk(s) { /* I figured global was faster.   */
+var md5blks = [], i; /* Andy King said do it this way. */
+for (i=0; i<64; i+=4) {
+md5blks[i>>2] = s.charCodeAt(i)
++ (s.charCodeAt(i+1) << 8)
++ (s.charCodeAt(i+2) << 16)
++ (s.charCodeAt(i+3) << 24);
+}
+return md5blks;
+}
+
+var hex_chr = '0123456789abcdef'.split('');
+
+function rhex(n)
+{
+var s='', j=0;
+for(; j<4; j++)
+s += hex_chr[(n >> (j * 8 + 4)) & 0x0F]
++ hex_chr[(n >> (j * 8)) & 0x0F];
+return s;
+}
+
+function hex(x) {
+var len = x.length;
+for (var i=0; i<len; i++)
+x[i] = rhex(x[i]);
+return x.join('');
+}
+
+function md5(s) {
+return hex(md51(s));
+}
+
+/* this function is much faster,
+so if possible we use it. Some IEs
+are the only ones I know of that
+need the idiotic second function,
+generated by an if clause.  */
+
+function add32(a, b) {
+return (a + b) & 0xFFFFFFFF;
+}
+
+if (md5('hello') != '5d41402abc4b2a76b9719d911017c592') {
+function add32(x, y) {
+var lsw = (x & 0xFFFF) + (y & 0xFFFF),
+msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+return (msw << 16) | (lsw & 0xFFFF);
+}
+}
+
+function getUnion(bounds1, bounds2) {
+  var sw1 = bounds1.getSouthWest();
+  var ne1 = bounds1.getNorthEast();
+  var sw2 = bounds2.getSouthWest();
+  var ne2 = bounds2.getNorthEast();
+  return new GLatLngBounds(
+    new GLatLng( // South West corner
+      Math.min(sw1.lat(), sw2.lat()), 
+      Math.min(sw1.lng(), sw2.lng())
+    ), 
+    new GLatLng( // North East corner
+      Math.max(ne1.lat(), ne2.lat()), 
+      Math.max(ne1.lng(), ne2.lng())
+    )
+  ); 
+}
+
+function addThousandsSeparator(input) {
+	try {
+		V = input.replace(/,/g,'');
+		var R = new RegExp('(-?[0-9]+)([0-9]{3})'); 
+		while(R.test(V))
+		{
+		    V = V.replace(R, '$1,$2');
+		}
+		return V;
+		
+	} catch (error) {
+		return input;
+	}
+
+}
+
+/*------------------------------------*/
+// TOGGLE MAP LAYER ON AND OFF
+/*------------------------------------*/  
+function toggleMapLayer(layerid){
+
+    var layer = feMap.mapFrame.getLayer(layerid);
+	if(layer){
+		//if visible hide the layer
+		if(layer.visible) {
+			switchOff(layerid);
+			removeGraphics();
+			feMap.mapFrame.infoWindow.hide();
+		}
+		//otherwise show and add to feMap.activeLayers. Start the spinner - it will stop once the layer has loaded
+		else {
+			switchOn(layerid);
+		}
+		
+	//If this is not a layer in the map, it may be a clustered layer	
+	} else {
+		var numClayers = feMap.clusterLayers.length;
+		for (var x = 0; x < numClayers; x++) {
+			var cLayer = feMap.clusterLayers[x];
+			if(layerid == cLayer.id) {
+				//Display the spinner, either for this layer individually or for the Layers dropdown
+				if(!cLayer.visible) {
+					cLayer.visible = true;
+					cLayer.setVisibility(true);
+				} else {
+					cLayer.visible = false;
+					//SL. Remove any highlight graphics, close the infoWindow
+					removeGraphics();
+					feMap.mapFrame.infoWindow.hide();
+					cLayer.setVisibility(false);
+				}
+				//jQuery('#layersButton span').addClass('loading');
+			}		
+		}	
+	}
+
+	
+}
+/*------------------------------------*/
+// Info Window Connect
+/*------------------------------------*/
+function displayInfoWindowConnect(evt){
+	displayInfoWindow(evt, this.layerIndex);
+}
+
+/*------------------------------------*/
+// HIDE ALL MAP LAYERS
+/*------------------------------------*/
+function hideAllMapLayers(){
+
+	// EMPTY ACTIVE LAYERS
+	feMap.activeLayers = [];
+	// REMOVED CHECKED
+	jQuery('#layersList .layer').removeClass('checked');
+	hideLayerInfo();
+	// HIDE ALL LAYERS
+	
+  var numLayers = feMap.mapLayers.length;
+  for(var i=0; i < numLayers; i++){
+  	try {
+	  	var layer = feMap.mapLayers[i];
+  		if(layer.allowIdentify){
+	  		removeFromIdentifyLayers(layer);
+  		}
+  		if(layer.tiles) {
+  			updateTiles();
+  			removeFromTileLayers(layer.id); 
+  		}
+  		feMap.mapFrame.removeLayer(layer);
+  		
+  	}catch(err){
+		console.log("problem deleting layers");
+  	}
+  }
+  feMap.mapLayers = [];
+  
+  //remove all cluster layers
+  var numClusterLayers = feMap.clusterLayers.length;
+  for(var i=0; i < numClusterLayers; i++){
+  	try {
+	  	var cLayer = feMap.clusterLayers[i];
+  	  	cLayer.clear();
+  	  	dojo.disconnect(cLayer.listener);
+  	  	feMap.mapFrame.removeLayer(cLayer.graphics);  		
+  	}catch(err){
+  		console.log("problem deleting cluster layers");
+  	}
+  }
+  feMap.clusterLayers = [];
+  
+	//Remove all legend layers
+	if(document.getElementById("legendButton")) {
+		feMap.legendLayers = [];
+		feMap.legend.refresh(feMap.legendLayers);
+	}	  
+	
+	//Close any alerts
+	clearAlerts();
+}
+
+/*------------------------------------*/
+// format unix timestamp
+/*------------------------------------*/
+function formatUnixTimestamp(currentValue){
+	if(is_int(currentValue) && currentValue.toString().length == 13){
+		// assume it's a unix timestamp and format it as a date
+		currentValue = mpfDate(moment(currentValue));
+	}
+	return currentValue;
+}
+/*------------------------------------*/
+// DISPLAY INFO WINDOW
+/*------------------------------------*/
+function displayInfoWindow(evt,i){
+	var iwtitle = userConfig.layers[i].infoWindow.windowTitle;
+	var iwattributes = userConfig.layers[i].attributes;
+	clearPopupValues();
+	// GENERATE CONTENT
+	var iwcontent = '<ul>';
+	if(iwattributes && iwattributes.length > 0){
+		for(j=0; j < iwattributes.length; j++){
+			if(iwattributes[j].url){
+				iwcontent += '<li><a target="_blank" href="' + evt.graphic.attributes[iwattributes[j].attributeLabel] + '">' + iwattributes[j].title + '</a></li>';
+			}
+			else{
+				// check if unix timestamp
+				var currentValue = formatUnixTimestamp(evt.graphic.attributes[iwattributes[j].attributeLabel]);
+				// display
+				iwcontent += '<li><strong>' + iwattributes[j].title + ':</strong>&nbsp;' + currentValue + '</li>';
+			}
+		}
+	}
+	else{
+		var key;
+		for(key in evt.graphic.attributes){
+			if(evt.graphic.attributes.hasOwnProperty(key)) {
+				// check if unix timestamp
+				var currentValue = formatUnixTimestamp(evt.graphic.attributes[key]);
+				// display 
+				iwcontent += '<li><strong>'+key+':</strong>&nbsp;' + currentValue + '</li>';
+			}
+		}
+	}
+	iwcontent += '</ul>';
+	// SET FEATURES
+	feMap.mapPopup.setFeatures([evt.graphic]);
+	// ATTACH TITLE
+	feMap.mapPopup.setTitle(iwtitle);
+	// ATTACH CONTENT
+	feMap.mapPopup.setContent(iwcontent);
+	// SHOW WINDOW
+	feMap.mapPopup.show(evt.screenPoint);
+}
+/*------------------------------------*/
+// CREATE SYMBOL
+/*------------------------------------*/
+function createSymbol(symbolObject,i,h){
+	var newStyle;
+	var color;
+	var line;
+	var fillColor;
+	var outlineColor;
+	switch(symbolObject.type){
+		case 'picture':
+			feMap.layerArray[i]['symbol' + h] = new esri.symbol.PictureMarkerSymbol(symbolObject.url, symbolObject.width, symbolObject.height);
+			break;
+		case "esriPMS":
+			feMap.layerArray[i]['symbol' + h] = new esri.symbol.PictureMarkerSymbol(symbolObject);
+			break;
+		case 'point':
+			switch(symbolObject.style){
+				case 'circle':
+					newStyle = 'STYLE_CIRCLE';
+					break;
+				case 'cross':
+					newStyle = 'STYLE_CROSS';
+					break;
+				case 'diamond':
+					newStyle = 'STYLE_DIAMOND';
+					break;
+				case 'square':
+					newStyle = 'STYLE_SQUARE';
+					break;
+				case 'X':
+					newStyle = 'STYLE_X';
+					break;
+			}
+			// COLOR
+			color = new dojo.Color(symbolObject.color);
+			// LINE
+			line = new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, color, 1);
+			// CREATE SYMBOL
+			feMap.layerArray[i]['symbol' + h] =  new esri.symbol.SimpleMarkerSymbol(esri.symbol.SimpleMarkerSymbol[newStyle], symbolObject.size, line, color);
+			break;
+		case 'line':
+			// COLOR
+			color = new dojo.Color(symbolObject.color);
+			// STYLE
+			switch(symbolObject.style){
+				case 'dash':
+					newStyle = 'STYLE_DASH';
+					break;
+				case 'dashdot':
+					newStyle = 'STYLE_DASHDOT';
+					break;
+				case 'dashdotdot':
+					newStyle = 'STYLE_DASHDOTDOT';
+					break;
+				case 'dot':
+					newStyle = 'STYLE_DOT';
+					break;
+				case 'solid':
+					newStyle = 'STYLE_SOLID';
+					break;
+				default:
+				newStyle = 'STYLE_SOLID';
+			}
+			// CREATE SYMBOL
+			feMap.layerArray[i]['symbol' + h] = new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol[newStyle], color, symbolObject.size);
+			break;
+		case 'polygon':
+			// COLOR
+			fillColor = new dojo.Color(symbolObject.fillColor);
+			// COLOR
+			outlineColor = new dojo.Color(symbolObject.outlineColor);
+			// STYLE
+			switch(symbolObject.style){
+				case 'backward':
+					newStyle = 'STYLE_BACKWARD_DIAGONAL';
+					break;
+				case 'cross':
+					newStyle = 'STYLE_CROSS';
+					break;
+				case 'diagcross':
+					newStyle = 'STYLE_DIAGONAL_CROSS';
+					break;
+				case 'forward':
+					newStyle = 'STYLE_FORWARD_DIAGONAL';
+					break;
+				case 'horizontal':
+					newStyle = 'STYLE_HORIZONTAL';
+					break;
+				case 'solid':
+					newStyle = 'STYLE_SOLID';
+					break;
+				case 'vertical':
+					newStyle = 'STYLE_VERTICAL';
+					break;
+				default:
+					newStyle = 'STYLE_SOLID';
+			}
+			// LINE
+			line = new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, outlineColor, 1);
+			// CREATE SYMBOL
+			feMap.layerArray[i]['symbol' + h] = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol[newStyle], line, fillColor);
+			break;
+		default:
+	}	
+}
+
+
+/*------------------------------------*/
+// CREATE SYMBOLS
+/*------------------------------------*/
+function createSymbols(i,type){
+	switch(type){
+		case 'simpleRenderer':
+			createSymbol(userConfig.layers[i].renderer.symbol,i,0);
+			break;
+		case 'uniqueValueRenderer':
+			if(userConfig.layers[i].renderer.categories){
+				// FOR INFOS CONFIG LENGTH
+				for(h=0; h <userConfig.layers[i].renderer.categories.length; h++){
+					// SYMBOL TYPE
+					createSymbol(userConfig.layers[i].renderer.categories[h].symbol,i,h);
+				}
+			}
+			break;
+		case 'classBreaksRenderer':
+			if(userConfig.layers[i].renderer.classBreaks){
+				// FOR INFOS CONFIG LENGTH
+				for(h=0; h <userConfig.layers[i].renderer.classBreaks.length; h++){
+					// SYMBOL TYPE
+					createSymbol(userConfig.layers[i].renderer.classBreaks[h].symbol,i,h);
+				}
+			}
+			break;
+	}
+}
+
+/*------------------------------------*/
+//Remove map graphics
+/*------------------------------------*/
+function removeGraphics() {
+	if(feMap.mapFrame.graphics) {feMap.mapFrame.graphics.clear();}
+}
+
+/*------------------------------------*/
+// CREATE CATEGORIES
+/*------------------------------------*/
+function createCategories(i){
+	if(userConfig.layers[i].uniqueValueRenderer.categories){
+		// FOR INFOS CONFIG LENGTH
+		for(h=0; h <userConfig.layers[i].uniqueValueRenderer.categories.length; h++){
+			feMap.layerArray[i].renderer.addValue({
+				value: userConfig.layers[i].uniqueValueRenderer.categories[h].uniqueValue,
+				symbol: feMap.layerArray[i]['symbol' + h],
+				label: userConfig.layers[i].uniqueValueRenderer.categories[h].label,
+				description:  userConfig.layers[i].uniqueValueRenderer.categories[h].description
+			});
+		}
+	}
+}
+/*------------------------------------*/
+// CREATE BREAKS
+/*------------------------------------*/
+function createBreaks(i){	
+	if(userConfig.layers[i].classBreaksRenderer.classBreaks){
+		// FOR INFOS CONFIG LENGTH
+		for(h=0; h <userConfig.layers[i].classBreaksRenderer.classBreaks.length; h++){
+			feMap.layerArray[i].renderer.addBreak({
+				minValue: userConfig.layers[i].classBreaksRenderer.classBreaks[h].minValue,
+				maxValue: userConfig.layers[i].classBreaksRenderer.classBreaks[h].maxValue,
+				symbol: feMap.layerArray[i]['symbol' + h],
+				label: userConfig.layers[i].classBreaksRenderer.classBreaks[h].label
+			});
+		}
+	}
+}
+/*------------------------------------*/
+// GET LAYER ORDER INDEX
+/*------------------------------------*/
+function getItemRow(id) {
+	var myPosition = -1;
+	if(userConfig.layerOrder){
+		for (i=0; i < userConfig.layerOrder.length; i++) {
+			if(userConfig.layerOrder[i] === id) {
+				myPosition = i;
+				break;
+			}
+		}
+	}
+	return myPosition;
+}
+
+/*------------------------------------*/
+// Create Popup
+/*------------------------------------*/
+function createPopup(){
+	feMap.mapPopup = new esri.dijit.Popup({
+		fillSymbol: new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID, new dojo.Color([255,0,0]), 2), new dojo.Color([255,255,0,0.25])),
+		lineSymbol: new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_DASH,
+		  new dojo.Color([255,0,0]), 3),
+		markerSymbol: new esri.symbol.SimpleMarkerSymbol('circle', 32, null, new dojo.Color([0, 0, 0, 0.25])),
+		//marginLeft: 10,
+		//marginTop: 10,
+		//offsetX:3,
+		//offsetY:3,
+		zoomFactor:4
+	}, dojo.create("div"));
+	
+}
+/*------------------------------------*/
+// Create the map object
+/*------------------------------------*/
+function createMap(){
+	var showInfoWindowOnClick = true;
+	if (userConfig.application.showInfoWindowOnClick == false) {
+		feMap.mapPopup = null;
+		showInfoWindowOnClick = false;
+	}
+	feMap.mapFrame = new esri.Map("map", {
+		extent: feMap.startExtent,
+		lods: userConfig.application.lods,
+		wrapAround180: true,
+		slider: false,
+		logo: false,
+		isScrollWheelZoom: true,
+		showInfoWindowOnClick: showInfoWindowOnClick,
+		infoWindow: feMap.mapPopup
+	});
+	
+	
+	//Initialise the feMap.maxOffset value
+	setMaxOffset();
+	
+}
+
+/******************************************/
+//Manage the list of "identifiable" layers. 
+/******************************************/
+function getIdentifyLayerIndex(layerid){
+	var indexNum = feMap.identifyLayers.indexOf(layerid);
+	return indexNum;
+}
+function addToIdentifyLayers(layer){
+	var theIndex = getIdentifyLayerIndex(layer);
+	if(theIndex === -1){
+		feMap.identifyLayers.push(layer);
+	}
+	
+	dojo.disconnect(feMap.identifyListener);
+	feMap.identifyListener = dojo.connect(feMap.mapFrame, "onClick", runIdentifies);
+	
+}
+function removeFromIdentifyLayers(layerid){
+	var theIndex = getIdentifyLayerIndex(layerid);
+	if(theIndex > -1) {
+		for(theIndex; theIndex > -1; theIndex = getIdentifyLayerIndex(layerid)) {
+			feMap.identifyLayers.splice(theIndex, 1);
+		}
+	}
+	if(feMap.identifyLayers.length==0) {
+		dojo.disconnect(feMap.identifyListener);
+	}
+}
+
+
+/*------------------------------------*/
+// GET BAEMAP INDEX BY UNIQUE ID
+/*------------------------------------*/
+function getBasemapIndex(id){
+	var returnVal = 0;
+	var i;
+	if(userConfig.basemaps){
+		for(i=0; i < userConfig.basemaps.length; ++i){
+			if(userConfig.basemaps[i].id === id){
+				return i;
+			}
+		}
+	}
+	return returnVal;
+}
+
+ /*------------------------------------*/
+// SET EXTENT
+/*------------------------------------*/
+function setStartExtentValues(){
+	if(!userConfig.application.extent.spatialRef){
+		userConfig.application.extent.spatialRef = 102100;
+	}
+	// SPATIAL REF
+	feMap.WMRef = new esri.SpatialReference({
+		wkid: userConfig.application.extent.spatialRef
+	});
+	// If the start extent has been provided in the URL, as the bounding box in Web Mercator
+	if(feMap.sXmin && feMap.sYmin && feMap.sXmax && feMap.sYmax) {
+		feMap.startExtent = new esri.geometry.Extent({
+			xmin: feMap.sXmin,
+			ymin: feMap.sYmin,
+			xmax: feMap.sXmax,
+			ymax: feMap.sYmax,
+			spatialReference: feMap.WMRef
+		});
+	}else {
+		// NOT LOADED FROM URL
+		feMap.startExtent = new esri.geometry.Extent(
+			parseFloat(userConfig.application.extent.xMin),
+			parseFloat(userConfig.application.extent.yMin),
+			parseFloat(userConfig.application.extent.xMax),
+			parseFloat(userConfig.application.extent.yMax),
+			feMap.WMRef
+		);
+		feMap.sXmin = userConfig.application.extent.xMin;
+		feMap.sYmin = userConfig.application.extent.yMin;
+		feMap.sXmax = userConfig.application.extent.xMax;
+		feMap.sYmax = userConfig.application.extent.yMax;
+    }
+}
+/*------------------------------------*/
+// RESIZE MAP FUNCTION
+/*------------------------------------*/
+function resizeMap(){
+	//clear any existing resize timer
+	clearTimeout(feMap.timer);
+	//create new resize timer with delay of 500 milliseconds
+	feMap.timer = setTimeout(function(){
+		if(map){
+			// GET HEIGHT OF MENU BAR
+			var barHeight = jQuery('#topMenuBar').height();
+			// GET HEIGHT OF MENU BAR
+			var chartHeight = jQuery('#graphBar').height();
+			// GET HEIGHT OF WINDOW
+			var windowHeight = jQuery(window).height();
+			// SET MAP HEIGHT
+			jQuery('#map').height(windowHeight - barHeight - chartHeight);
+			// RESIZE
+			feMap.mapFrame.resize();
+			feMap.mapFrame.reposition();
+			if(userConfig.application.showAboutMenu) {updatePlacesOffset();}
+			if(userConfig.application.showShareMenu) {updateShareOffset();}
+		}
+	}, 500);
+}
+/*------------------------------------*/
+// HIDES INFO WINDOW
+/*------------------------------------*/
+function hidePopup(){
+	feMap.mapPopup.hide();
+}
+/*------------------------------------*/
+// HIDE STUFF
+/*------------------------------------*/
+function clearPopupValues(){
+	feMap.mapPopup.setContent('');
+    feMap.mapPopup.setTitle('');
+	feMap.mapPopup.clearFeatures();
+}
+/*------------------------------------*/
+// clear the locate graphic
+/*------------------------------------*/
+function resetLocateLayer() {
+    if (feMap.locateResultLayer){
+        feMap.locateResultLayer.clear();
+    }
+    feMap.locateString = "";
+    setSharing();
+}
+/*------------------------------------*/
+// CHECK GRAPHIC
+/*------------------------------------*/
+function checkGraphic(evt){
+    if (evt.graphic) {
+        return;
+    }
+    else {
+        hidePopup();
+    }
+}
+/*------------------------------------*/
+// Check to see if scalebar should be shown
+/*------------------------------------*/
+function checkScaleBar(){
+    if (feMap.xScalebar) {
+        if (feMap.mapFrame.getLevel() < 5) {
+            feMap.xScalebar.hide();
+        }
+        else {
+            feMap.xScalebar.show();
+        }
+    }
+}
+/*------------------------------------*/
+// search box functions
+/*------------------------------------*/ 
+function autoComplete(query) {
+	var address = {
+		SingleLine: query
+	};
+    feMap.aoGeoCoderAutocomplete.addressToLocations(address,["*"]);
+	clearTimeout(feMap.acHideTimer);
+	feMap.acHideTimer = setTimeout(hideAC,6000);
+}
+/*------------------------------------*/
+// LOCATE 
+/*------------------------------------*/
+function locate() {
+    var query = jQuery('#address').val();
+    if(query){
+		var address = {
+			SingleLine: query
+		};
+		feMap.aoGeocoder.addressToLocations(address,["*"]);
+		feMap.locateString = query;
+		setSharing();
+	}
+	else{
+		raiseAlert("Search","Please enter a search location.");
+	}
+}
+
+function gazetteerSearch(query) {
+	// Just zoom to the first result if the user hits Enter
+	feMap.gazQuery.where = "upper(" + userConfig.application.gazetteer.nameField + ") like '" + query.toUpperCase() + "%'";
+	feMap.gazQueryTask.execute(feMap.gazQuery, function(gazetteerResults) {
+		if(gazetteerResults.features.length > 0) {
+			zoomToGazetteerResult(gazetteerResults.features[0]);
+		} else {
+			raiseAlert("Gazetteer error", "Unable to find a matching feature");
+		}
+	});
+
+}
+
+function gazetteerSearchAutoComplete(query) {
+	feMap.gazQuery.where = "upper(" + userConfig.application.gazetteer.nameField + ") like '" + query.toUpperCase() + "%'";
+	feMap.gazQueryTask.execute(feMap.gazQuery, showGazetteerAutoCompleteResults);
+}
+
+function showGazetteerAutoCompleteResults(gazResults) {
+	//Display the results in the AutoComplete popup
+	var autoCompleteObj = jQuery('#autoComplete');
+	var addressPosition = jQuery('#address').parent('.iconInput').offset();
+	autoCompleteObj.css({'left': addressPosition.left+'px', 'top': addressPosition.top+28+'px'});
+	var aResults = '';
+	
+	if(gazResults.features.length > 0){
+		feMap.ACObj = gazResults;
+		aResults += '<ul class="zebraStripes">';
+		var i;
+		var maxResults = 25;
+		if(gazResults.features.length < maxResults) {maxResults = gazResults.features.length;}
+		for(i=0; i < maxResults; ++i){
+		    var layerClass = '';
+		    if(i % 2 === 0){
+		        layerClass = '';
+		    }
+		    else{
+		        layerClass = 'stripe';
+		    }
+		  aResults += '<li tabindex="'+ (i + 2) +'" class="'+ layerClass +'">' + gazResults.features[i].attributes[userConfig.application.gazetteer.nameField]  + '</li>';
+		}
+		aResults += '</ul>';
+		if(gazResults.features.length > 0){
+			autoCompleteObj.html(aResults).show();
+		}
+	} else{
+		hideAC();
+	}
+}
+
+function zoomToGazetteerResult(feature) {
+
+	//Set the Address Search text
+	jQuery('#address').val(feature.attributes[userConfig.application.gazetteer.nameField]);
+	
+	if(feMap.locateResultLayer) {
+		feMap.locateResultLayer.clear();
+		clearPopupValues();
+		hidePopup();
+	}
+	else{
+		feMap.locateResultLayer = new esri.layers.GraphicsLayer();
+		dojo.connect(feMap.locateResultLayer, "onClick",function(evt){
+			var content = "<strong>" + evt.graphic.attributes["Name"] +"</strong>";
+			feMap.mapPopup.setContent(content);
+			var title = "Location";
+			feMap.mapPopup.setTitle(title);
+			var height = 180
+			var width = 100
+			if(userConfig.application.locatorPopup) {
+				height = userConfig.application.locatorPopup.height;
+				width = userConfig.application.locatorPopup.width;
+			}
+			feMap.mapPopup.resize(height,width);
+			feMap.mapPopup.show(evt.graphic.geometry);
+		});
+		feMap.mapFrame.addLayer(feMap.locateResultLayer);
+	}
+	
+	// SET EXTENT VARIABLES
+	var lat = feature.attributes[userConfig.application.gazetteer.latField];
+	var lon = feature.attributes[userConfig.application.gazetteer.lonField];
+	var wkid = userConfig.application.gazetteer.wkid;
+	var pt = new esri.geometry.Point(lon, lat, new esri.SpatialReference({ wkid: wkid }));
+	if (wkid === 4326 || wkid === 4283) {
+		pt = esri.geometry.geographicToWebMercator(pt)
+	}
+	
+	// CREATE POINT MARKER
+	var pointSymbol = new esri.symbol.PictureMarkerSymbol(userConfig.application.pointSymbol, 21, 29).setOffset(0,12);
+	var locationGraphic = new esri.Graphic(pt,pointSymbol);
+	locationGraphic.setAttributes({"Name":feature.attributes[userConfig.application.gazetteer.nameField] });
+	feMap.locateResultLayer.add(locationGraphic);
+	
+	// Zoom to the new extent
+	feMap.buffer = userConfig.application.gazetteer.buffer || 5000;
+	var newExtent = new esri.geometry.Extent({
+		xmin: pt.x - feMap.buffer,
+		ymin: pt.y - feMap.buffer,
+		xmax: pt.x + feMap.buffer,
+		ymax: pt.y + feMap.buffer,
+		spatialReference: feMap.WMRef
+	});
+	feMap.mapFrame.setExtent(newExtent);
+}
+
+/*------------------------------------*/
+// SHOW AUTOCOMPLETE
+/*------------------------------------*/
+function showAutoComplete(geocodeResults){
+    var aResults = '';
+    var addressPosition = jQuery('#address').parent('.iconInput').offset();
+    var partialMatch = jQuery('#address').val();
+    var regex = new RegExp('('+ partialMatch +')','gi');
+	var autoCompleteObj = jQuery('#autoComplete');
+    autoCompleteObj.css({'left': addressPosition.left+'px', 'top': addressPosition.top+28+'px'});
+    if(geocodeResults !== null){
+        feMap.ACObj = geocodeResults;
+        aResults += '<ul class="zebraStripes">';
+		var i;
+        for(i=0; i < geocodeResults.length; ++i){
+            var layerClass = '';
+            if(i % 2 === 0){
+                layerClass = '';
+            }
+            else{
+                layerClass = 'stripe';
+            }
+          aResults += '<li tabindex="'+ (i + 2) +'" class="'+ layerClass +'">' + geocodeResults[i].address.replace(regex,'<span>' + partialMatch + '</span>')  + '</li>';
+        }
+        aResults += '</ul>';
+        if(geocodeResults.length > 0){
+			autoCompleteObj.html(aResults).show();
+		}
+		else{
+			hideAC();
+		}
+    }
+}
+
+
+/*------------------------------------*/
+// SHOW RESULTS
+/*------------------------------------*/
+function showGeocodeResults(geocodeResults, resultNumber){
+	// IF RESULT
+	if(geocodeResults.length > 0){
+		// NUM RESULT VARIABLE
+		var numResult = 0;
+		// IF RESULT NUMBER
+		if(resultNumber){
+			numResult = resultNumber;
+		}
+		// IF LOCATE RESULTS
+		if(feMap.locateResultLayer) {
+			feMap.locateResultLayer.clear();
+			clearPopupValues();
+			hidePopup();
+		}
+		else{
+			feMap.locateResultLayer = new esri.layers.GraphicsLayer();
+			dojo.connect(feMap.locateResultLayer, "onClick",function(evt){
+			var content = "<strong>" + evt.graphic.attributes.address +"</strong>";
+			feMap.mapPopup.setContent(content);
+			var title = "Location";
+			feMap.mapPopup.setTitle(title);
+			feMap.mapPopup.show(evt.graphic.geometry);
+			});
+			feMap.mapFrame.addLayer(feMap.locateResultLayer);
+		}
+		// CREATE POINT MARKER
+		var pointMeters = esri.geometry.geographicToWebMercator(geocodeResults[numResult].location);
+		var pointSymbol = new esri.symbol.PictureMarkerSymbol(userConfig.application.pointSymbol, 21, 29).setOffset(0,12);
+		var locationGraphic = new esri.Graphic(pointMeters,pointSymbol);
+		locationGraphic.setAttributes({"address":geocodeResults[numResult].address });
+		feMap.locateResultLayer.add(locationGraphic);
+		// SET EXTENT VARIABLES
+		var xminNew = parseFloat(geocodeResults[numResult].attributes.West_Lon);
+		var yminNew = parseFloat(geocodeResults[numResult].attributes.South_Lat);
+		var xmaxNew = parseFloat(geocodeResults[numResult].attributes.East_Lon);
+		var ymaxNew =  parseFloat(geocodeResults[numResult].attributes.North_Lat);
+		// CREATE NEW EXTENT
+		var newExtent = new esri.geometry.Extent({
+			xmin: xminNew,
+			ymin: yminNew,
+			xmax: xmaxNew,
+			ymax: ymaxNew,
+			spatialReference: feMap.WMRef
+		});
+		// SET EXTENT CONVERTED TO WEB MERCATOR
+		feMap.mapFrame.setExtent(esri.geometry.geographicToWebMercator(newExtent));
+	}
+	else{
+		raiseAlert("Search error","Location could not be found.");
+		resetLocateLayer();
+		clearAddress(jQuery('#address'));
+	}
+	hideAC();
+}
+
+function runIdentifies(evt) {
+
+	//don't run this function if the user has clicked on a graphic
+	if(evt.graphic) {return null;}
+
+	//Hold a reference to the point clicked, so the Identify window can be anchored here
+	feMap.identifyMapPoint = evt.mapPoint;
+
+	feMap.mapFrame.infoWindow.hide();
+	
+	//Set a waiting cursor to let the user know there's a process running. Revert to the 
+	//standard cursor when the Identify tasks returns a result
+	feMap.mapFrame.setCursor("wait");
+	
+	//Report the number of selected features in the popup
+	dojo.connect(feMap.mapFrame.infoWindow,"onSelectionChange",function(){
+		var idx = feMap.mapFrame.infoWindow.selectedIndex + 1;
+		feMap.mapFrame.infoWindow.setTitle("(" + idx + " of " + feMap.mapFrame.infoWindow.count + ")");
+	});
+	
+	//We are already maintaining a list of "identifiable" layers, controlled by the TOC
+	var layers = feMap.identifyLayers;
+	    
+    //map each identify layer to a new identify task, using the layer url
+    feMap.tasks = dojo.map(layers, function(layer) {
+        return new esri.tasks.IdentifyTask(layer.url);
+    }); 
+    
+    //map each identify task to a new dojo.Deferred
+    feMap.defTasks = dojo.map(feMap.tasks, function (task) {
+        return new dojo.Deferred();
+    }); 
+    
+    //Use all of these Deferreds in a DeferredList
+    feMap.dlTasks = new dojo.DeferredList(feMap.defTasks); 
+    feMap.dlTasks.then(showIDResults); //chain showIDResults onto the DeferredList
+      
+    //Use 'for' instead of 'for...in' to sync tasks with feMap.defTasks
+    for (i=0;i<feMap.tasks.length;i++) { 
+        try {
+        
+        	//Configure the identify parameters
+        	var idParams = new esri.tasks.IdentifyParameters();
+        	idParams.tolerance = userConfig.application.identifyTolerance;
+        	idParams.returnGeometry = true;
+        	idParams.layerOption = esri.tasks.IdentifyParameters.LAYER_OPTION_VISIBLE;
+        	idParams.width = feMap.mapFrame.width;
+        	idParams.height = feMap.mapFrame.height;
+        	idParams.maxAllowableOffset = feMap.maxOffset;
+        	idParams.geometry = evt.mapPoint;
+        	idParams.mapExtent = feMap.mapFrame.extent;
+        	idParams.allowIdentify = feMap.identifyLayers[i].layerInfo.allowIdentify;
+        	        	
+        	//Build an array of the layers to be identified
+        	var idLayers = [];
+        	var numIDLayers = idParams.allowIdentify.length;
+        	for (var x = 0; x < numIDLayers; x++) {
+	    		idLayers.push(idParams.allowIdentify[x].layerId);        	
+        	}
+        	idParams.url = feMap.identifyLayers[i].url;
+        	idParams.layerIds = idLayers;
+        	        	
+			//Execute the task
+            feMap.tasks[i].execute(idParams, feMap.defTasks[i].callback, feMap.defTasks[i].errback); //Execute each task
+        } catch (e) {
+            console.log("Error caught");
+            console.log(e);
+            feMap.defTasks[i].errback(e); //If you get an error for any task, execute the errback
+        }
+    }
+}
+
+function showIDResults(r) {
+
+	//console.log(r.length, feMap.identifyLayers.length);
+  
+    var results = [];
+    r = dojo.filter(r, function (result) {
+        return r[0];
+    }); //filter out any failed tasks
+    for (i=0;i<r.length;i++) {
+        results = results.concat(r[i][1]);
+    }
+    
+    //Find the relevant allowIdentify for each result. This is a slight hack, given that the identifyResult object
+    //can't tell us, definitively, which layer it's from. The best workaround is to find out the layerName, and
+    //compare it to the .mapServiceName property on the layer object. A limitation is that layer names must be unique.
+    //TODO: expand this explanation further
+    //Build up an array of features to be returned to the infoWindow
+    var features = [];
+    
+    //Iterate through each result to see whether there is a corresponding allowIdentify specification for this layer.
+    var numResults = results.length;
+    for (var x = 0; x < numResults; x++) {
+    	
+    	//Find the layer name. This is the name specified in ArcMap, and carried through to the REST API.
+    	var resultLayerName = results[x].layerName;
+    	var resultLayerId = results[x].layerId;
+    	
+    	//Find the corresponding allowIdentify object, which will be found in the identifyLayers array
+    	var numIDLayers = feMap.identifyLayers.length;
+    	for(var y=0;y<numIDLayers;y++){
+    		var lyr = feMap.identifyLayers[y];
+    		//var allowIdentify = lyr.allowIdentify;
+    		var wantedLayerId = lyr.primaryLayerId;
+			var mapServiceName = lyr.primaryLayerMapServiceName;
+			if(resultLayerId == wantedLayerId && resultLayerName == mapServiceName) {
+				//We're interested in this layer, so build up an infoTemplate from its attributes
+				var feature = results[x].feature;
+				feature.attributes.layerName = results[x].layerName;
+				    				
+				//Build up a table from the aliases and attributes. Format numerical values.
+				contents = "<table style='width:100%;'>";
+				var attributes = lyr.attributes;
+				var numAttr = attributes.length;
+				for (var a = 0; a < numAttr; a++) {
+					if(!attributes[a].hide) {
+    					var value = feature.attributes[attributes[a].name];
+    					if(dojo.number.format(value)) {
+    						value = dojo.number.format(value);
+    					}
+    					var label = attributes[a].alias || attributes[a].name;
+						contents += "<tr><td><strong>" + label + ":</strong></td><td>" + value + "</td></tr>";
+					}
+				}
+				contents += "</table>"; 
+				var infoTemplate = new esri.InfoTemplate(feature.attributes.layerName, contents);
+				feature.setInfoTemplate(infoTemplate);	
+				features.push(feature);    			   	
+			}
+    	} 
+    }
+    
+    //Display the infoWindow if there are any features
+    if(features.length === 0) {
+        feMap.mapFrame.infoWindow.clearFeatures();
+    } else {
+        feMap.mapFrame.infoWindow.setFeatures(features);
+    }
+    feMap.mapFrame.infoWindow.show(feMap.identifyMapPoint);
+        
+    //Revert the mouse cursor to normal
+    feMap.mapFrame.setCursor("default");
+    
+    return features; 
+          
+   }
+
+
+/*----------------------------------*/
+//SL. BUILD HIGHCHART
+/*----------------------------------*/
+
+function buildChart(graphic) {
+    var highChart = this.highChart;
+    var fields = highChart.chartData.fields;
+    feMap.mapFrame.infoWindow.hide();
+
+    try {
+        dojo.disconnect(prevInfoWindowOnShowHandler);
+    } catch (e) {}
+       
+    prevInfoWindowOnShowHandler = dojo.connect(feMap.mapFrame.infoWindow, "onShow", function () {
+        //build the series - we need to do this on-the-fly since the values aren't
+        //known until the user clicks on a feature
+        var attr = graphic.attributes;
+        var series = new Array();
+        
+        var numSeries = highChart.chartData.data.series.length;
+        for (var i = 0; i < numSeries; i++) {
+            var fields = highChart.chartData.data.series[i].fields;
+            var multiplier = highChart.chartData.data.series[i].multiplier || 1;
+            var other = highChart.chartData.data.series[i].other || null;
+            var field = fields[0];
+            var data = new Array();
+            data[0] = attr[field] * multiplier;
+            var numFields = fields.length;
+            for (var x = 1; x < numFields; x++) {
+                var field = fields[x];
+                data[x] = attr[field] * multiplier;
+            }
+
+            //If this series has an "other" category
+            if (other != null) {
+                //Summarise the "other" fields into a single value
+                var otherTotal = 0;
+                var len = other.length;
+                for (var o = 0; o < len; o++) {
+                    otherTotal += attr[other[o]];
+                }
+                //Add the keyword "other" to the labels
+                highChart.chartData.xAxis.categories.push("other");
+                //Add the "other" total to the data
+                data.push(otherTotal);
+            }
+            series[i] = new Object();
+            series[i].name = highChart.chartData.data.series[i].name
+            series[i].data = data;
+        }
+                        
+        //Add the chart's title, truncated if necessary
+        if (highChart.titleField) {
+        	var title = highChart.labels.title + " - " + graphic.attributes[highChart.titleField];
+        } else {
+	        var title = highChart.labels.title;
+	    }
+        if (title.length > 80) {
+            title = title.substring(title, 80) + "...";   
+        }            
+        
+        //Set the subtitle if specified
+        var subtitle = ""
+        if(highChart.labels.subtitle) {
+        	subtitle = highChart.labels.subtitle;
+        }
+        
+        //If the user has specified a link, evaluate it
+        if(highChart.labels.link) {
+        	var link = highChart.labels.link;
+        	var prefix = link.prefix;
+        	var variable = link.variable;
+        	var suffix = link.suffix;
+        	var label = link.label;
+        	subtitle = '<a target="_blank" href="' + prefix + graphic.attributes[variable] + suffix + '">' + label + '</a>'
+        }   
+
+        var chart = new Highcharts.Chart({
+            chart: {
+                renderTo: 'container',
+                defaultSeriesType: highChart.setup.chartType,
+                marginRight: highChart.setup.marginRight || 0,
+                marginBottom: highChart.setup.marginBottom || 0
+            },
+            legend: {
+                //show the legend if there is more than one series
+                enabled: highChart.chartData.data.series.length > 1
+            },
+            title: {
+                text: title
+            },
+            subtitle: {
+                text: subtitle
+            },
+            xAxis: highChart.chartData.xAxis,
+            yAxis: highChart.chartData.yAxis,
+            tooltip: highChart.chartData.tooltip,
+            plotOptions: highChart.chartData.plotOptions || {
+                series: {
+                    stacking: 'normal'
+                }
+            },
+            series: series
+        });
+    });
+    //Resize the map's infoWindow to suit this layer
+    var infoWindowWidth = 610;
+    if (highChart.setup.width) {
+    	infoWindowWidth = highChart.setup.width;							
+    }
+    var infoWindowHeight = 350;
+    if (highChart.setup.height) {
+    	infoWindowHeight = highChart.setup.height;							
+    }
+    feMap.mapFrame.infoWindow.resize(infoWindowWidth,infoWindowHeight);
+    var width = infoWindowWidth - 15;
+    var height = infoWindowHeight - 40;
+    return "<div id='container' style='width: " + width + "px; height: " + height + "px;'></div>";
+}
+
+function setMaxOffset() {
+	//Simplifies geometries based on the current map size
+	feMap.maxOffset = Math.floor(feMap.mapFrame.extent.getWidth() / feMap.mapFrame.width) * userConfig.application.offsetTolerance;
+}
+
+function zoomToStartExtent() {
+	feMap.mapFrame.setExtent(feMap.startExtent);
+}
+
+function checkTOCVisibility() {
+	var numLayers = feMap.mapLayers.length;
+	for (var i=0; i<numLayers; i++) {
+		var layer = feMap.mapLayers[i];
+		var identifyIndex = getIdentifyLayerIndex(layer);
+		var minScale = layer.minScale;
+		var maxScale = layer.maxScale;
+	
+		if(minScale != 0 && currentMapScale > minScale || maxScale != 0 && currentMapScale < maxScale) {
+			//If the layer is outside its scale range, force its visibility off. It will be shown checked on but grey in the TOC
+			jQuery('#layer-' + layer.id).addClass("grey");
+			jQuery('#layer-' + layer.id).removeClass("cLoading");
+			layer.setVisibility(false);
+
+			//If this is a dynamic layer, remove it from the list of "identifiable" layers (if it's currently listed)
+			if(layer.allowIdentify && identifyIndex > -1){
+				removeFromIdentifyLayers(layer);
+			}		
+		}else{
+			//If the layer is within its scale range, and checked on, switch it on
+			if(jQuery('#layer-' + layer.id).hasClass("checked")) {
+				layer.setVisibility(true);
+			}
+			jQuery('#layer-' + layer.id).removeClass("grey");
+			
+			//If this is a visible, identifiable layer, add it to the list of "identifiable" layers (if it isn't already listed)
+			if(layer.visible && layer.layerInfo.allowIdentify && identifyIndex <0){
+				addToIdentifyLayers(layer);
+			}	
+		}
+	}
+}
+
+function createLegend() {
+	
+	feMap.legend = new esri.dijit.Legend({
+		map:map,
+		layerInfos:feMap.legendLayers
+	},"legendDiv");
+	feMap.legend.startup();
+		
+	//TODO: how to display a legend for cluster layers? GraphicsLayers are not supported in the legend
+	//so we might need to create a feature layer?
+}
+
+function updateLegendLayerInfos() {
+
+	//Iterate through all map layers to find only those which support a legend
+	feMap.legendLayers = [];
+	var layers = feMap.mapFrame.graphicsLayerIds.concat(feMap.mapFrame.layerIds);
+	jQuery.each(layers,function(index,layerId){
+		var layer = feMap.mapFrame.getLayer(layerId);
+		if(layer) {
+			if(layer.showLegend) {
+				var title = layer.title;
+				feMap.legendLayers.push({layer:layer, title:title, id:layerId});
+			}
+		}	
+	});
+	feMap.legend.refresh(feMap.legendLayers);
+}
+
+/******************************************/
+//Manage the list of cluster layers. 
+/******************************************/
+function getClusterLayerIndex(layerid){
+	var indexNum = feMap.clusterLayers.indexOf(layerid);
+	return indexNum;
+}
+function addToClusterLayers(layerid){
+	var theIndex = getClusterLayerIndex(layerid);
+	if(theIndex === -1){
+		feMap.clusterLayers.push(layerid);
+	}
+}
+function removeFromClusterLayers(layerid){
+	var theIndex = getClusterLayerIndex(layerid);
+	if(theIndex > -1) {
+		for(theIndex; theIndex > -1; theIndex = getClusterLayerIndex(layerid)) {
+			feMap.clusterLayers.splice(theIndex, 1);
+		}
+	}
+}
+
+function errCluster(err) {
+	if(userConfig.application.development) {
+		console.log("Problem running a cluster query");
+	}
+}
+
+function switchOn(layerId) {
+	//switch on the layer, and toggle its checkbox entry on
+	var layer = feMap.mapFrame.getLayer(layerId);	
+	addToActiveLayers(layerId);
+	jQuery('#layer-'+layerId).addClass('checked');
+	if(layer) {
+		layer.show();
+		if(layer.allowIdentify){
+			addToIdentifyLayers(layer);
+		}
+		if(layer.tiles){
+			addToTileLayers(layer.id);
+		}
+	}
+}
+
+function switchOff(layerId) {
+
+	//Switch the layer off. Toggle it off in the TOC, from the list of active layers, and the list of identifiable layers
+	var layer = feMap.mapFrame.getLayer(layerId);
+	jQuery('#layer-'+layerId).removeClass('checked');
+	removeFromActiveLayers(layerId);
+	if(layer) {
+		//jQuery('#layersMenu .layer[data-layer=' + layerId + ']').removeClass('checked');	
+		layer.hide();
+		layer.setVisibility(false);
+		removeGraphics();
+		if(layer.allowIdentify){
+			removeFromIdentifyLayers(layer);
+		}
+		if(layer.tiles){
+			removeFromTileLayers(layer.id);
+		}
+	}
+}
+
+function setupDropZone() {
+    //set the map canvas as the "drop zone" for new files.
+    var node = dojo.byId("map");
+    dojo.connect(node, "dragenter", function(evt) {evt.preventDefault();});
+    dojo.connect(node, "dragover", function(evt) {evt.preventDefault();});
+    dojo.connect(node, "drop", handleDrop);
+}
+
+function orientationChanged() {
+	if(feMap.mapFrame) {
+		feMap.mapFrame.reposition();
+		feMap.mapFrame.resize();
+	}
+}
+
+/******************************************/
+// Functions to handle layers which support tiles (which are a form of docked infoWindows). 
+/******************************************/
+function getTileLayerIndex(layerid){
+	var indexNum = feMap.tileLayers.indexOf(layerid);
+	return indexNum;
+}
+function addToTileLayers(layerid){
+
+	var theIndex = getTileLayerIndex(layerid);
+	if(theIndex === -1){
+		feMap.tileLayers.push(layerid);
+	}
+	dojo.disconnect(feMap.tileListener);
+	if(feMap.tileLayers.length > 0) {
+		feMap.tileListener = dojo.connect(feMap.mapFrame, "onExtentChange", updateTiles)
+		updateTiles();
+	}	
+}
+
+function removeFromTileLayers(layerid){
+	var theIndex = getTileLayerIndex(layerid);
+	if(theIndex > -1) {
+		for(theIndex; theIndex > -1; theIndex = getTileLayerIndex(layerid)) {
+			feMap.tileLayers.splice(theIndex, 1);
+		}
+	}
+	
+	//Also hide this layer's tiles
+	var tileLayer = feMap.mapFrame.getLayer(layerid);
+	if (tileLayer) {			
+		var articles = tileLayer.getLayers();
+		var numArticles = articles.length;
+		for (var a = 0; a < numArticles; a++) {	
+			var localArticle = articles;	  				
+			jQuery.each(articles[a].graphics,function(index,value){
+				var md5Id = md5(localArticle[a].id+value.attributes.name);
+				//find the corresponding tile
+				var tile = jQuery.grep(jQuery("#doc-container li"),function(n,i){return n.id == "item"+md5Id})[0];
+				jQuery(tile).stop().fadeOut(1000);		
+			});
+		}
+	}	
+	
+	//If there are no more tile layers, disconnect the listener
+	if(feMap.tileLayers.length == 0) {
+		dojo.disconnect(feMap.tileListener);
+		updateTiles();
+	}
+}
+
+function updateTiles() {
+	//Update the visibility of tiles, to only show those within the current map extent
+	jQuery("#doc-container li").css("display", "none");	
+	var numTileLayers = feMap.tileLayers.length;
+	for(var i = 0; i < numTileLayers; i++) {
+		var tileLayer = feMap.mapFrame.getLayer(feMap.tileLayers[i]);
+		if (tileLayer) {			
+			var articles = tileLayer.getLayers();
+			var numArticles = articles.length;
+			for (var a = 0; a < numArticles; a++) {	
+	    		var graphicsSize = articles[a].graphics.length;				  				
+				var localArticle = articles;
+	    		var lotsOfGraphics = false;
+	    		if (graphicsSize > 500) lotsOfGraphics = true;
+	    		if (lotsOfGraphics) {
+		    		jQuery("#doc-container").html("");
+		    		getTiles();	
+	    		} else {
+				
+					jQuery.each(articles[a].graphics,function(index,value){
+						//find the corresponding tile
+						var md5Id = md5(localArticle[a].id+value.attributes.name);
+	
+						tile = jQuery.grep(jQuery("#doc-container li"),function(n,i){return n.id == "item"+md5Id})[0];
+						if(tile) {
+							if (feMap.mapFrame.extent.contains(value.geometry)) {
+								if (jQuery(tile).css("display") == "none") {
+									jQuery(tile).stop().fadeIn();
+								}
+							}
+						}		
+					});
+				}
+			}
+	    }
+	}
+}
+
+function getTiles() {
+
+	//Retrieve tiles associated with the current visible tile layers
+	var numTileLayers = feMap.tileLayers.length;
+	for(var i = 0; i < numTileLayers; i++) {
+		var tileLayer = feMap.mapFrame.getLayer(feMap.tileLayers[i]);
+		if (tileLayer) {	
+			if (!tileLayer.tileBuilt) {
+
+		    	var articles = tileLayer.getLayers();
+		    	var numArticles = articles.length;
+		    	for (var a = 0; a < numArticles; a++) {
+		    		var localArticle = articles;
+		    		var graphicsSize = articles[a].graphics.length;
+		    		var lotsOfGraphics = false;
+		    		if (graphicsSize > 500) {
+		    			lotsOfGraphics = true;
+		    			tileLayer.tileBuilt = false;
+		    		} else {
+			    		tileLayer.tileBuilt = true;
+		    		}
+
+					jQuery.each(articles[a].graphics,function(index,value){
+
+						var md5Id = md5(localArticle[a].id+value.attributes.name);
+						if(document.getElementById("item"+md5Id)) {
+							var existingLayer = jQuery("#item"+md5Id);
+							existingLayer.fadeIn();
+							existingLayer.attr("data-geometry", existingLayer.attr("data-geometry") + "," + index);
+						} else {
+							if (feMap.mapFrame.extent.contains(value.geometry)) {
+								display = "visible"
+							} else {
+								display = "none";
+							}
+							var displayIt = false;
+							if (!lotsOfGraphics) {
+								displayIt = true;
+							} else {
+								if (feMap.mapFrame.extent.contains(value.geometry)) {
+									displayIt = true;
+								} else {
+									displayIt = false;
+								}
+							}
+							if (displayIt) {
+								var description = value.attributes.description.split(".")[0];
+								var imgHTML = "";
+								var img = this.getLayer().renderer.getSymbol(this);
+								if (img) {
+									imgHTML = "<img src='" + img.imageData + "' />";
+								}
+								var orgHeight = img.height;
+								var orgWidth = img.width;
+								if (lotsOfGraphics) this.hide();
+								tile = jQuery('<li data-geometry=' + index + ' id="item'+md5Id+'" style="display:' + display+ '"><h4>' + value.attributes.name + "</h4><span class='summary'>" + imgHTML + value.attributes.description +  "...</span></li>");
+								jQuery(tile).hover(
+									function() {
+										//img.setHeight(100);
+										//img.setWidth(100);
+										var localIndexes = jQuery(this).attr("data-geometry").split(",");
+										var numIndexes = localIndexes.length;
+										for (var yy = 0; yy < numIndexes; yy++) {
+											var thisLayer = value.getLayer();
+											if (lotsOfGraphics) {
+												thisLayer.graphics[localIndexes[yy]].show();
+											} else {
+												thisLayer.graphics[localIndexes[yy]].setSymbol(img);
+											}
+										}
+									},
+									function() {
+										img.setHeight(orgHeight);
+										img.setWidth(orgWidth);
+										var localIndexes = jQuery(this).attr("data-geometry").split(",");
+										var numIndexes = localIndexes.length;
+										for (var yy = 0; yy < numIndexes; yy++) {
+											var thisLayer = value.getLayer();
+											if (lotsOfGraphics) {
+												thisLayer.graphics[localIndexes[yy]].hide();
+											} else {
+												thisLayer.graphics[localIndexes[yy]].setSymbol(img);
+											}
+										}
+	
+										
+									}
+								);
+								jQuery(tile).click(function() {
+									var fullPosition = jQuery(this).find(".summary").attr("class").indexOf("full-story");
+									if (fullPosition >= 0) {
+										jQuery(this).find(".summary").removeClass("full-story");									
+									} else {
+										jQuery(this).find(".summary").addClass("full-story");									
+									}
+	
+								});
+								jQuery("#doc-container").append(tile);
+							}
+						}
+					});
+			    }
+			 }
+		}
+	}
+}

@@ -24,11 +24,15 @@
     	zoom: 5
     });
       
-    var mdsLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://arcservices.mdsgeoplace.com/MDS/rest/services/MDSFoundationMapGreyscale/MapServer?token=4ETnjtPA_C-brvoJ2rF83SVbJveCyZfcpnqWZwZZ_mdGBUj5dagH35uQl-DpxCr3bUgKJEmdFZet7GMU4e-IZQ..",{id: "MDSlayer"});
+    var mdsLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://arcservices.mdsgeoplace.com/MDS/rest/services/MDSFoundationMapGreyscale/MapServer?token=bXwFCT3qxczWzB7LVAN-R36vXzXeQWrHN5Xa5KM6EaSwXujACSjAAr3bf8HFN275-eyNqeEG6Jthn_goYSBZbg..",{id: "MDSlayer"});
     map.addLayer(mdsLayer);
     
     dojo.connect(mdsLayer, "onError", function(error) {
     	alert("Code: " + error.code + ", " + error.message);    
+    });
+    
+    dojo.connect(map, "onExtentChange", function(extent,delta,change,LOD){
+         dojo.byId("scale").text = LOD;
     });
     
     }  
@@ -37,5 +41,6 @@
  </head>  
  <body class="nihilo">  
    <div id="map" style="width: 900px; height:600px; border 1px solid #000;"></div>  
+   <span id="scale"></span>
   </body>  
 </html>     

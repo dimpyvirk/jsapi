@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
     <script>var dojoConfig = { parseOnLoad: true };</script>
     <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
-    <script src="http://localhost/mpf/scripts/esri/QueryLayer.js"></script>
+    <script src="http://localhost/mpf/scripts/esri/selectionLayer.js"></script>
     <style>
 		html, body { 
 			height: 100%; width: 100%;
@@ -24,7 +24,7 @@
     	dojo.require("esri.layers.FeatureLayer");
     	
     	var feObj = {};
-    	var queryLayer;
+    	var selectionLayer;
     	var query;
     	var queryTask;
     	
@@ -55,7 +55,7 @@
 				}    		
     		]
     		
-    		queryLayer = new modules.QueryLayer(null, {
+    		selectionLayer = new modules.SelectionLayer(null, {
     			id: "query layer",
     			geometryType: "esriGeometryPolygon",
     			map: feObj.mapFrame,
@@ -63,7 +63,7 @@
     			spatialReference: sr
     		});
     		
-    		feObj.mapFrame.addLayer(queryLayer.featureLayer);
+    		feObj.mapFrame.addLayer(selectionLayer.featureLayer);
     	    		
      	}
      	
@@ -77,9 +77,11 @@
     	
 		function selectShowResults(featureSet) {
 			    	
-    		queryLayer.clearFeatures();  
-    		queryLayer.setFeatures(featureSet);
-    		queryLayer.zoomToResults(featureSet);
+    		selectionLayer.clearFeatures();  
+    		selectionLayer.addFeatures(featureSet);
+    		selectionLayer.zoomToResults(featureSet);
+    		
+    		//selectionLayer.highlightFeatures([0]);
 
     	}
 		

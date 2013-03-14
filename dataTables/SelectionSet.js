@@ -26,13 +26,13 @@ dojo.addOnLoad(function() {
 			table += "</thead><tbody></tbody>";
 			
 			//Create a new tab to hold the resultsTable, and add it to the results panel
-			jQuery("#searchResultsTabs ul").append('<li id="tab_' + this.id + '"><a href="#' + this.id + '"><span>' + this.id + '</span></a></li>');
-			var tabHTML = jQuery("#searchResultsTabs").html();
-			tabHTML += "<div id='" + this.id + "'>" + table + "</div";
-			jQuery("#searchResultsTabs").html(tabHTML);
+			$("#searchResultsTabs ul").append('<li id="tab_' + this.id + '"><a href="#' + this.id + '"><span>' + this.id + '</span></a></li>');
+			var HTML = $("#searchResultsTabs").html();
+			HTML += "<div id='" + this.id + "'>" + table + "</div";
+			$("#searchResultsTabs").html(HTML);
 			
 			//Allow table sorting.
-			this.resultsTable.oTable = jQuery('#' + this.resultsTable.id).dataTable({
+			this.resultsTable.oTable = $('#' + this.resultsTable.id).dataTable({
 			
 				"aaSorting": [ ],
 				"bLengthChange": false,
@@ -64,9 +64,9 @@ dojo.addOnLoad(function() {
 			this.resultsTable.oTable.fnDraw();
 			
 			//Switch to this table's tab
-			var index = jQuery('#searchResultsTabs a[href="#' + this.id + '"]').parent().index();
-			jQuery("#searchResultsTabs" ).tabs( "refresh" );
-			jQuery("#searchResultsTabs" ).tabs( "option", "active", index );
+			var index = $('#searchResultsTabs a[href="#' + this.id + '"]').parent().index();
+			$("#searchResultsTabs" ).tabs( "refresh" );
+			$("#searchResultsTabs" ).tabs( "option", "active", index );
 			
 		}	
 	}); // end of class declaration

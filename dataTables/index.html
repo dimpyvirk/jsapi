@@ -11,9 +11,17 @@
 </head>
 <body>
 	<button id="initialise" onClick="initialise()" style="display: none" ;type="button">Initialise</button>
-	<button class="layers" onClick="loadLayer1()" style="display: none;" type="button">Load layer 1</button>
-	<button class="layers" onClick="loadLayer2()" style="display: none;" type="button">Load layer 2</button>
+	<button class="results" onClick="loadResults1()" style="display: none;" type="button">Load results 1</button>
+	<button class="results" onClick="loadResults2()" style="display: none;" type="button">Load results 2</button>
+	<button class="results" onClick="loadResults3()" style="display: none;" type="button">Load results 3</button>
 	
+	<style>
+		#resultsSet1, #resultsSet2, #resultsSet3 {
+			margin-top: 20px;
+			border: 1px solid #333;
+		}
+		
+	</style>
     	       	
    	<div id="SearchResults">
    		<div id="searchResultsTabs">
@@ -30,77 +38,54 @@
     
     <script type="text/javascript">
     
-    var layer1, layer2;
-    
-    function initialise() {
-    	layer1 = new modules.SelectionLayer(
-    		{
-    			id: "layer1",
-    			fields: ["Name","Address1","Town"]
-    		}
-    	);
-    	
-    	layer2 = new modules.SelectionLayer(
-    		{
-    			id: "layer2",
-    			fields: ["Name","region_id","Tot_P_P","Shape_Area"]
-    		}
-    	);
-    	
-    	$("#searchResultsTabs").tabs();
-    	$("#initialise").hide();
-    	$(".layers").show();
-    	
-    }
-    
-    function loadLayer1() {
-    	var features = [
-    	  {
-    	   "attributes": {
-    	    "Name": "Mitcham Mall",
-    	    "Address1": "Enterprise Way",
-    	    "Town": "Mitcham"
-    	   }
-    	  },
-    	  {
-    	   "attributes": {
-    	    "Name": "Batchelor",
-    	    "Address1": "Nurndina Street",
-    	    "Town": "Batchelor"
-    	   }
-    	  }
-    	 ]
-    	 
-    	 layer1.addFeatures(features);
-    }
-    
-    function loadLayer2() {
-    	var features= [
-    	  {
-    	   "attributes": {
-    	    "Name": "Albury (C)",
-    	    "region_id": "LGA10050",
-    	    "Tot_P_P": 47810,
-    	    "Shape_Area": 468710730
-    	   }
-    	  },
-    	  {
-    	   "attributes": {
-    	    "Name": "Armidale (A)",
-    	    "region_id": "LGA10110",
-    	    "Tot_P_P": 24105,
-    	    "Shape_Area": 5722894900
-    	   }
-    	  }
-    	 ];
-    	 
-    	 layer2.addFeatures(features);
-    }
-    
     $(document).ready(function() {
      	$("#initialise").show();
     });
+    
+    var resultsSet1, resultsSet2, resultsSet3;
+    
+    function initialise() {
+    	//Define the empty tables. Seemingly, only the last object defined will work (comment out resultsSet3, and resultsSet2 will start to work).
+    	resultsSet1 = new modules.SelectionLayer({id:"resultsSet1",fields: ["Name","Address1","Town"]});
+    	resultsSet2 = new modules.SelectionLayer({id:"resultsSet2",fields: ["Name","region_id","Tot_P_P","Shape_Area"]});
+    	resultsSet3 = new modules.SelectionLayer({id:"resultsSet3",fields: ["Site_name", "Lat", "Long"]})
     	
+    	//Enable tabs, then toggle the UI buttons
+	   	$("#searchResultsTabs").tabs();
+    	$("#initialise").hide();
+    	$(".results").show();
+    }
+    
+    function loadResults1() {
+    	//Define a couple of features, then add them to the table
+    	var features = [
+    	  {"attributes": {"Name": "Mitcham Mall","Address1": "Enterprise Way","Town": "Mitcham"}},
+    	  {"attributes": {"Name": "Batchelor","Address1": "Nurndina Street","Town": "Batchelor"}}
+    	 ];
+    	 
+    	 resultsSet1.addFeatures(features);
+    }
+    
+    function loadResults2() {
+    	//Define a couple of features, then add them to the table
+    	var features= [
+    	  {"attributes": {"Name": "Albury (C)","region_id": "LGA10050","Tot_P_P": 47810,"Shape_Area": 468710730}},
+    	  {"attributes": {"Name": "Armidale (A)","region_id": "LGA10110","Tot_P_P": 24105,"Shape_Area": 5722894900}}
+    	 ];
+    	 
+    	 resultsSet2.addFeatures(features);
+    }
+    
+    function loadResults3() {
+    	//Define a couple of features, then add them to the table
+    	var features = [
+    	  {"attributes": {"Site_name": "KUNMUNYA","Lat": -15.416,"Long": 124.7167}},
+    	  {"attributes": {"Site_name": "WYNDHAM PORT","Lat": -15.464,"Long": 128.099}}
+    	 ];
+    	 
+    	 resultsSet3.addFeatures(features);
+    }
+        	
     </script>
     
 </body>

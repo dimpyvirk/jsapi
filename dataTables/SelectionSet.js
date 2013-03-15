@@ -30,18 +30,18 @@ dojo.addOnLoad(function() {
 			var HTML = $("#searchResultsTabs").html();
 			HTML += "<div id='" + this.id + "'>" + table + "</div";
 			$("#searchResultsTabs").html(HTML);
-			
-			//Allow table sorting.
-			this.resultsTable.oTable = $('#' + this.resultsTable.id).dataTable({
-			
-				"aaSorting": [ ],
-				"bLengthChange": false,
-				"bFilter": false
-				//"bDestroy": true	
-			});
 						
 		},
 		addFeatures: function(features) {
+		
+			if(!this.resultsTable.oTable) {
+				this.resultsTable.oTable = $('#' + this.resultsTable.id).dataTable({
+				
+					"aaSorting": [ ],
+					"bLengthChange": false,
+					"bFilter": false	
+				});
+			}
 			
 			//Add new features to the table
 			var numFeatures = features.length;

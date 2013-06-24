@@ -1,0 +1,131 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7,IE=9">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Feature layer from featureCollection</title>
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/dojo/dijit/themes/nihilo/nihilo.css">
+    <link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/js/esri/css/esri.css">
+    <script>var dojoConfig = { parseOnLoad: true };</script>
+    <script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.3/"></script>
+    <style>
+		html, body { 
+			height: 100%; width: 100%;
+			margin: 0; padding: 0;
+		} 
+    </style>
+    <script>
+    	dojo.require("dijit.layout.BorderContainer");
+    	dojo.require("dijit.layout.ContentPane");
+    	dojo.require("esri.map");
+    	dojo.require("esri.tasks.query");
+    	dojo.require("esri.layers.FeatureLayer");
+    	
+    	var map;
+    	var featLayer;
+    	
+    	function init() {
+    	
+    		map = new esri.Map("map", {
+    		  center: [152.35, -27.2574],
+    		  basemap: "gray",
+    		  zoom: 12
+    		});
+    		
+    		//Add as a tiled layer
+    		var tiledLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://ga.gov.au/gis/rest/services/topography/Topo_WM/MapServer/", { opacity:0.5});
+    		map.addLayer(tiledLayer);
+    		
+    		dojo.connect(map, "onLoad", function() {
+    		
+    			//Create an empty feature layer based on an empty feature collection    			
+    			var featureSet = new esri.tasks.FeatureSet({
+    				geometryType: "esriGeometryPolygon",
+    				features: []
+    			});    			
+    			var layerDefinition = {
+    			  "geometryType": "esriGeometryPolygon",
+    			  "fields": [
+    				{
+    					"name": "NAME",
+    					"type": "esriFieldTypeString",
+    					"alias": "NAME",
+    					"length": 60,
+    					"domain": null
+    				},
+    				{
+    					"name": "OBJECTID",
+    					"type": "esriFieldTypeOID",
+    					"alias": "OBJECTID",
+    					"domain": null
+    				}
+    			  ]
+    			}
+
+    			var featureCollection = {layerDefinition: layerDefinition,featureSet: featureSet};				
+    			featLayer = new esri.layers.FeatureLayer(featureCollection, {id: "queryLayer",mode: esri.layers.FeatureLayer.MODE_ONDEMAND})
+    			var renderer = new esri.renderer.SimpleRenderer(new esri.symbol.SimpleFillSymbol("solid", null, new dojo.Color([255, 0, 255, 0.75])));
+    			featLayer.setRenderer(renderer);
+    			map.addLayer(featLayer);
+    			
+    			//Populate the layer
+    			runQuery();
+    			
+    			dojo.connect(featLayer, "onMouseOver", function(evt) {
+    				//Break on this line and evaluate evt - it doesn't list evt.graphic
+    				var xxx = 0;
+    			});
+    						
+	    	});
+    		
+     	}
+     	
+     	function runQuery() {
+     		//Run a query to find lakes with names starting with "LAKE"    		
+     		
+     		//Build the query
+     		var query = new esri.tasks.Query();
+     		query.returnGeometry = true;
+     		query.outFields = ["NAME","OBJECTID","SHAPE"];
+     		query.where = "NAME like 'LAKE CR%'";
+     		
+     		//Delete any existing features
+     		featLayer.applyEdits(null,null,featLayer.graphics);
+     		
+     		//Run the query
+     		var queryTask = new esri.tasks.QueryTask("http://ga.gov.au/gis/rest/services/topography/Topo_WM/MapServer/72");
+     		queryTask.execute(query, addFeatures, SQLerror);
+     	}
+     	
+     	function addFeatures(results) {
+     		//Add the returned features to the feature layer
+     		featLayer.applyEdits(results.features, null, null);
+     		
+     		for (var i = 0; i < results.features.length; i++) {
+     			var feature = results.features[i];
+				console.log("adding ObjectID ",feature.attributes["OBJECTID"],"with name ", feature.attributes["NAME"]);
+			}
+     		 
+     	}
+     	
+     	     	
+     	function SQLerror(error) {
+     		alert("There was a problem with the query");   	
+     	}
+         	    	
+    	dojo.ready(init);
+    </script>
+    
+  </head>
+  <body class="nihilo">
+    <div id="mainWindow" 
+         data-dojo-type="dijit.layout.BorderContainer" 
+         data-dojo-props="design:'headline',gutters:false"
+         style="width: 100%; height: 100%; margin: 0;">
+      <div id="map" class="shadow" data-dojo-type="dijit.layout.ContentPane" data-dojo-props="region:'center'">
+      
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,194 @@
+/*   
+Template Name: Unify - Responsive Bootstrap Template
+Description: Business, Corporate, Portfolio and Blog Theme.
+Version: 1.2
+Author: Html Stream
+Website: http://htmlstream.com/preview/unify
+*/
+
+/*Import Google Fonts*/
+@import url(http://fonts.googleapis.com/css?family=Open+Sans);
+
+* {
+	margin:0;
+	padding:0;
+	border-radius:0 !important;
+}
+
+body {
+	color:#333;
+	background:#fcfcfc;
+	font-family:'Open Sans', sans-serif; 
+}
+
+h1, h2, h3, h4 {
+	font-weight:normal;
+}
+h1 {
+	font-size:25px;
+}
+h2 {
+	font-size:28px;
+}
+h3 {
+	font-size:20px;
+	margin-top:30px;
+	line-height:20px;
+}
+
+hr { 
+	margin-top:0;
+}
+
+pre {
+	border-color:#eee;
+	background:#fafafa;
+}
+
+/*Main Styles
+------------------------------------*/
+.aside,
+.content {
+	padding:15px;
+} 
+
+/*aside*/
+.aside {
+	background:#fff;
+}
+.aside li a {
+	display:block;
+	font-size:16px;
+	padding:10px 8px;
+	margin-bottom:1px;
+	background:#fcfcfc;
+	text-shadow:0 1px 0 #fff;
+}
+.aside li a:hover {
+	background:#eee;
+	text-decoration:none;
+}
+
+/*content*/
+.content {
+	background:#fff;
+}
+.content h2 {
+	position:relative;
+}
+.content h2 a {
+	right:0;
+	bottom:0;
+	font-size:18px;
+	line-height:18px;
+	position:absolute;
+}
+.content h2 a:hover {
+	text-decoration:none;
+}
+.content h2 a i.icon-angle-up {
+	color:#fff;
+	padding:1px 3px;
+	background:#eee;
+	line-height:16px;
+}
+.content h2 a:hover i.icon-angle-up {
+	color:#005580;
+}
+
+/*Changelog and Upgrade*/
+.changelog li,
+.upgrade li {
+	margin-bottom: 8px;
+}
+
+/*Theme*/
+.theme li {
+	margin-bottom: 5px;
+}
+
+.theme p.theme-info {
+	line-height: 25px;
+}
+
+/*Icons*/
+.icon-page li {
+    color: #555555;
+    font-family: Arial;
+    font-size: 14px;
+    margin: 5px 0;
+}
+.icon-page li i {
+    font-size: 14px;
+    margin-right: 5px;
+}
+.icon-page li:hover {
+    color: #72C02C;
+}
+
+/*Glyphicons*/
+.glyphicons-demo {
+    text-align: ;
+}
+.glyphicons-demo .glyphicons {
+    color: #999999;
+    display: inline-block;
+    font-size: 14px;
+    line-height: 48px;
+    margin-right: 20px;
+    text-align: left;
+    width: 150px;
+}
+.glyphicons-demo .glyphicons i:before {
+    color: #666666;
+    line-height: 55px !important;
+}
+
+.halfings-demo .white-content {
+    background: rgba(0, 0, 0, 0.9);
+    margin: 0 -20px;
+    padding: 20px;
+}
+.halfings-demo .white-content *, 
+.halfings-demo .white-content p, 
+.halfings-demo .white-content a {
+    color: #FFFFFF;
+}
+.halfings-demo h2 {
+    text-align: left;
+}
+.halfings-demo p, 
+.halfings-demo a {
+    display: inline-block;
+    font-size: 14px;
+    line-height: 14px;
+    margin-right: 10px;
+    text-align: left;
+    width: 175px;
+}
+.halfings-demo .halflings, 
+.halfings-demo .halflings-icon {
+    margin: 0 5px 0 0;
+}
+
+/*Others*/
+.margin-bottom-20 {
+	margin-bottom:20px;
+}
+.margin-bottom-30 {
+	margin-bottom:30px;
+}
+.margin-bottom-40 {
+	margin-bottom:40px;
+}
+.margin-bottom-70 {
+	margin-bottom:70px;
+}
+
+.tag-cover {
+	background: #ddd;
+}
+
+.tag-cover-color {
+	background: #d7e3dd;
+}
